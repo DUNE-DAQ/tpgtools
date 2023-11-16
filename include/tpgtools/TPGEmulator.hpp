@@ -94,11 +94,11 @@ void save_raw_data(swtpg_wibeth::MessageRegisters register_array,
 
   uint64_t t_current= t0 ; 
   
-  for (auto ichan = 0; ichan < swtpg_wibeth::NUM_REGISTERS_PER_FRAME * swtpg_wibeth::SAMPLES_PER_REGISTER; ++ichan) {
+  for (size_t ichan = 0; ichan < swtpg_wibeth::NUM_REGISTERS_PER_FRAME * swtpg_wibeth::SAMPLES_PER_REGISTER; ++ichan) {
 
     const size_t register_index = ichan / swtpg_wibeth::SAMPLES_PER_REGISTER;
     // Parse only selected channel number. To select all channels choose -1
-    if (ichan == channel_number || channel_number == -1) { 
+    if (static_cast<int>(ichan) ==channel_number || channel_number == -1) { 
    
       const size_t register_offset = ichan % swtpg_wibeth::SAMPLES_PER_REGISTER;
       const size_t register_t0_start = register_index * swtpg_wibeth::SAMPLES_PER_REGISTER * swtpg_wibeth::FRAMES_PER_MSG;

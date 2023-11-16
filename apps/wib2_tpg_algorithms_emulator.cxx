@@ -136,11 +136,11 @@ void save_raw_data(swtpg_wib2::MessageRegisters register_array,
   const uint16_t* input16 = register_array.data();
   for (size_t ichan = 0; ichan < swtpg_wib2::NUM_REGISTERS_PER_FRAME * swtpg_wib2::SAMPLES_PER_REGISTER; ++ichan) {
     const int register_index = ichan / swtpg_wib2::SAMPLES_PER_REGISTER;
-    if (register_index < 0 || register_index >= swtpg_wib2::NUM_REGISTERS_PER_FRAME)
+    if (register_index < 0 || register_index >= static_cast<int>(swtpg_wib2::NUM_REGISTERS_PER_FRAME))
        continue;
 
     // Parse only selected channel number. To select all channels choose -1
-    if (ichan == channel_number || channel_number == -1) { 
+    if (static_cast<int>(ichan) == channel_number || channel_number == -1) { 
    
       const size_t register_offset = ichan % swtpg_wib2::SAMPLES_PER_REGISTER;
       const size_t register_t0_start = register_index * swtpg_wib2::SAMPLES_PER_REGISTER * swtpg_wib2::FRAMES_PER_MSG;
@@ -177,7 +177,7 @@ void extract_hits_naive(uint16_t* output_location, uint64_t timestamp) {
     constexpr int clocksPerTPCTick = 32;
     //uint16_t chan[100], hit_end[100], hit_charge[100], hit_tover[100]; 
     uint16_t chan, hit_end, hit_charge, hit_tover; 
-    unsigned int nhits = 0;
+    //unsigned int nhits = 0;
 
     size_t i = 0;
     while (*output_location != swtpg_wib2::MAGIC) {
@@ -328,7 +328,7 @@ void execute_tpg(const dunedaq::fdreadoutlibs::types::DUNEWIBSuperChunkTypeAdapt
 
 
   // Insert output of the AVX processing into the swtpg_output 
-  swtpg_output swtpg_processing_result = {destination_ptr, timestamp};
+  //swtpg_output swtpg_processing_result = {destination_ptr, timestamp};
     
   if (select_implementation == "AVX") {
     extract_hits_avx(destination_ptr, timestamp);
