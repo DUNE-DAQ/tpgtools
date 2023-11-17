@@ -18,12 +18,17 @@
 
 ERS_DECLARE_ISSUE(tpgtools,
                   TPGAlgorithmInexistent,
-                  "The selected algorithm does not exist: " << algorithm_selection << " . Check your command line options and select either SimpleThreshold or AbsRS.",
+                  "The selected algorithm does not exist: " << algorithm_selection << " . Check your command line options and select either SimpleThreshold or AbsRS",
                   ((std::string)algorithm_selection))
 
 ERS_DECLARE_ISSUE(tpgtools,
                   FileInexistent,
-                  "The selected input file does not exist. Input file: " << input_file_path << "  Check the path of the input file.",
+                  "The selected input file does not exist. Input file: " << input_file_path << "  Check the path of the input file",
+                  ((std::string)input_file_path))
+
+ERS_DECLARE_ISSUE(tpgtools,
+                  InvalidImplementation,
+                  "The selected TPG algorithm implementation does not exist: " << input_file_path << "  Check your command line options and select either NAIVE or AVX",
                   ((std::string)input_file_path))
 
 

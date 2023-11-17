@@ -12,19 +12,16 @@
 
 
 #include "fddetdataformats/WIBEthFrame.hpp"
-#include "fddetdataformats/WIBEthFrame.hpp"
-#include "iomanager/IOManager.hpp"
-#include "readoutlibs/utils/RateLimiter.hpp"
+
+
 #include "readoutlibs/utils/FileSourceBuffer.hpp"
 #include "readoutlibs/utils/BufferedFileWriter.hpp"
+
+
 #include "fdreadoutlibs/DUNEWIBEthTypeAdapter.hpp"
-#include "fdreadoutlibs/wibeth/WIBEthFrameProcessor.hpp"
-#include "fdreadoutlibs/wibeth/tpg/ProcessAVX2.hpp"
-#include "fdreadoutlibs/wibeth/tpg/ProcessRSAVX2.hpp"
-#include "fdreadoutlibs/wibeth/tpg/ProcessNaive.hpp"
-#include "fdreadoutlibs/wibeth/tpg/ProcessNaiveRS.hpp"
-#include "readoutlibs/models/DefaultRequestHandlerModel.hpp"
-#include "detchannelmaps/TPCChannelMap.hpp"
+
+
+
 #include "triggeralgs/TriggerPrimitive.hpp"
 #include "trgdataformats/TriggerPrimitive.hpp"
 #include "hdf5libs/HDF5RawDataFile.hpp"

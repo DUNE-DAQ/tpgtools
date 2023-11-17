@@ -1,22 +1,22 @@
 # tpgtools 
 Here is a short summary of the applications and scripts available in `tpgtools` 
-## Emulator
 
+## Emulator
 
 `wibeth_tpg_algorithms_emulator` is an emulator application for TPG algorithms. It takes as input a Trigger Record file (`*.hdf5` file) and it will execute the selected TPG algorithm on the Trigger Record data. The application is single threaded, pinned to core 0. The core number is configurable.   
 
 To use the tool use the following:
 ```sh
-$ wibeth_tpg_algorithms_emualator --help 
-TPG algorithms emulator
+$ wibeth_tpg_algorithms_emulator --help 
+TPG algorithms emulator using input from Trigger Record files
 Usage: wibeth_tpg_algorithms_emulator [OPTIONS]
 
 Options:
   -h,--help                   Print this help message and exit
   -f,--file-path-input TEXT   Path to the input file
-  -a,--algorithm TEXT         TPG Algorithm (SimpleThreshold / AbsRS). Default: SimpleThreshold
+  -a,--algorithm TEXT         TPG Algorithm (SimpleThreshold / AbsRS)
   -i,--implementation TEXT    TPG implementation (AVX / NAIVE). Default: AVX
-  -m,--channel-map TEXT       Select a valid channel map: VDColdboxChannelMap, ProtoDUNESP1ChannelMap, PD2HDChannelMap, HDColdboxChannelMap, FiftyLChannelMap
+  -m,--channel-map TEXT       Select a valid channel map: None, VDColdboxChannelMap, ProtoDUNESP1ChannelMap, PD2HDChannelMap, HDColdboxChannelMap, FiftyLChannelMap
   -n,--num-TR-to-read INT     Number of Trigger Records to read. Default: select all TRs.
   -t,--tpg-threshold INT      Value of the TPG threshold. Default value is 500.
   -c,--core INT               Set core number of the executing TPG thread. Default value is 0.
@@ -36,7 +36,9 @@ $ wibeth_tpg_algorithms_emulator -f swtest_run000035_0000_dataflow0_datawriter_0
 
 ## Utility tools and scripts
 
-* `wibeth_simple_tpg_emulator` is a simple emulator for validating different TPG algorithms, either in a naive or in AVX implementation. The application allows to emulate the workload when running a TPG algorithm and therefore monitor performance metrics. It requires an input binary frame file (check assets-list for valid input files) and it will execute the desired TPG algorithm for a configurable duration (default value is 120 seconds). The application is single threaded, pinned to core 0. Check the hlper page for more details. Usage: `wibeth_simple_tpg_emulator -f wibeth_frame_file.bin` 
+* `wibeth_tpg_workload_emulator` is a simple emulator for TPG algorithm in either a naive or in AVX implementation. The application allows to emulate the workload when running a TPG algorithm and therefore monitor performance metrics. It requires an input binary frame file (check assets-list for valid input files) and it will execute the desired TPG algorithm for a configurable duration (default value is 120 seconds). The application is single threaded, pinned to core 0 (configurable). Check the helper page for more details. Example of usage: `wibeth_tpg_workload_emulator -f wibeth_frame_file.bin` 
+
+* `wibeth_tpg_validation` is a simple emulator for validating different TPG algorithms, either in naive or in AVX implementation. Check the helper page for more details. Usage: `wibeth_tpg_validation -f wibeth_frame_file.bin` 
 
 * `wibeth_binary_frame_reader`: reads a WIBEth frame file (`.bin` file) and prints all the ADC values on screen. Usage `wibeth_binary_frame_reader <input_file_name>`.  
 
@@ -50,7 +52,9 @@ python3 plot_trigprim_output_data.py  -f TP_OUTPUT.TXT
 #### Setup matplotlib on NP04 machines (e.g. `np04-srv-019`)
 To use the `matplotlib` python module run the following command on a console where the DUNE-DAQ software area has not been sourced:
 ```sh
+export PREFIX_PATH=$HOME
 pip install --prefix=$PREFIX_PATH matplotlib
+export PYTHONPATH=$HOME/lib/python3.10/site-packages/:$PYTHONPATH
 ```
 
 

@@ -7,40 +7,12 @@
  * received with this code.
  */
 
-// DUNE-DAQ
-#include "fddetdataformats/WIBEthFrame.hpp"
-#include "fddetdataformats/WIBEthFrame.hpp"
-#include "fdreadoutlibs/DUNEWIBEthTypeAdapter.hpp"
-#include "fdreadoutlibs/wibeth/WIBEthFrameProcessor.hpp"
-#include "fdreadoutlibs/wibeth/tpg/ProcessAVX2.hpp"
-#include "fdreadoutlibs/wibeth/tpg/ProcessRSAVX2.hpp"
-#include "fdreadoutlibs/wibeth/tpg/ProcessNaive.hpp"
-#include "fdreadoutlibs/wibeth/tpg/ProcessNaiveRS.hpp"
-#include "readoutlibs/models/DefaultRequestHandlerModel.hpp"
-#include "detchannelmaps/TPCChannelMap.hpp"
-#include "triggeralgs/TriggerPrimitive.hpp"
-#include "trgdataformats/TriggerPrimitive.hpp"
-#include "hdf5libs/HDF5RawDataFile.hpp"
-
 #include "tpgtools/TPGEmulator.hpp"
 
 // system
 #include "CLI/CLI.hpp"
 #include <iostream>
 #include <fstream>
-#include <vector>
-#include <random>
-#include <algorithm>
-
-
-#include <cstring>
-#include <immintrin.h>
-#include <cstdio> 
-#include <array>
-#include <chrono>
-#include <stdio.h>
-#include <stdint.h>
-#include <memory>
 
 using namespace dunedaq::hdf5libs;
 
@@ -54,14 +26,17 @@ int
 main(int argc, char** argv)
 {
 
-    CLI::App app{ "TPG algorithms emulator" };
+    CLI::App app{ "TPG algorithms emulator using input from Trigger Record files" };
 
     std::string file_path_input = "";
     app.add_option("-f,--file-path-input", file_path_input, "Path to the input file");
 
     std::string select_algorithm = "";
     app.add_option("-a,--algorithm", select_algorithm, "TPG Algorithm (SimpleThreshold / AbsRS)");
-  
+
+    std::string select_implementation = "AVX";
+    app.add_option("-i,--implementation", select_implementation, "TPG implementation (AVX / NAIVE). Default: AVX");
+
     std::string select_channel_map = "None";
     app.add_option("-m,--channel-map", select_channel_map, "Select a valid channel map: None, VDColdboxChannelMap, ProtoDUNESP1ChannelMap, PD2HDChannelMap, HDColdboxChannelMap, FiftyLChannelMap");
 
@@ -90,11 +65,20 @@ main(int argc, char** argv)
     //                       Setup the TPG emulator
     // =================================================================
 
-    // AAA: maybe this constructor should accept a config file...
-    tpg_emulator_avx emulator(save_adc_data, save_trigprim, parse_trigger_primitive, select_algorithm, select_channel_map);
-    emulator.set_tpg_threshold(tpg_threshold);
-    emulator.set_CPU_affinity(core_number);
-    emulator.initialize();
+
+    // Create instance of the TPG emulator implementation    
+    std::unique_ptr<tpg_emulator_base> emulator;
+    if (select_implementation == "AVX") {
+      emulator = std::make_unique<tpg_emulator_avx>(save_adc_data, save_trigprim, parse_trigger_primitive, select_algorithm, select_channel_map);
+    } else if (select_implementation == "NAIVE") {
+      emulator = std::make_unique<tpg_emulator_naive>(save_adc_data, save_trigprim, parse_trigger_primitive, select_algorithm, select_channel_map);
+    } else {
+      throw tpgtools::InvalidImplementation(ERS_HERE, select_implementation);  
+    }
+
+    emulator->set_tpg_threshold(tpg_threshold);
+    emulator->set_CPU_affinity(core_number);
+    emulator->initialize();
 
     
     // =================================================================
@@ -159,13 +143,13 @@ main(int argc, char** argv)
                 static_cast<char*>(frag_ptr->get_data()) + i * sizeof(dunedaq::fddetdataformats::WIBEthFrame)
               );
   
-              emulator.register_channel_map(fr);
+              emulator->register_channel_map(fr);
       
               // Execute the TPG algorithm on the WIBEth adapter frames
               auto fp = reinterpret_cast<dunedaq::fdreadoutlibs::types::DUNEWIBEthTypeAdapter*>(fr);
               
         
-              emulator.execute_tpg(fp);
+              emulator->execute_tpg(fp);
       
       
             } // end loop over number of frames      
@@ -196,7 +180,7 @@ main(int argc, char** argv)
 
 
     TLOG_DEBUG(TLVL_BOOKKEEPING) << "Elapsed time for reading input file [ms]: " << elapsed_milliseconds;
-    std::cout << "Found in total " << emulator.get_total_hits() << " hits" << std::endl;
+    std::cout << "Found in total " << emulator->get_total_hits() << " hits" << std::endl;
 
     if (parse_trigger_primitive) {
       std::cout << "Found in total  (from Trigger Record) " << number_TPs_from_TR << " TPs" << std::endl;

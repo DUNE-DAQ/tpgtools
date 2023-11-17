@@ -68,7 +68,8 @@ daq_add_library(
 # Applications
 
 daq_add_application(wib2_tpg_algorithms_emulator wib2_tpg_algorithms_emulator.cxx LINK_LIBRARIES ${PROJECT_NAME} CLI11::CLI11)
-#daq_add_application(wibeth_simple_tpg_emulator wibeth_simple_tpg_emulator.cxx LINK_LIBRARIES tpgtools  CLI11::CLI11)
+daq_add_application(wibeth_tpg_validation wibeth_tpg_validation.cxx LINK_LIBRARIES tpgtools  CLI11::CLI11)
+daq_add_application(wibeth_tpg_workload_emulator wibeth_tpg_workload_emulator.cxx LINK_LIBRARIES tpgtools  CLI11::CLI11)
 daq_add_application(wibeth_tpg_algorithms_emulator wibeth_tpg_algorithms_emulator.cxx LINK_LIBRARIES ${PROJECT_NAME}  CLI11::CLI11)
 
 daq_add_application(wib2_binary_frame_modifier wib2_binary_frame_modifier.cxx LINK_LIBRARIES ${PROJECT_NAME} )
