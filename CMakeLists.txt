@@ -46,6 +46,7 @@ set(sources_tpgemulator
 
 set(includes_tpgemulator
     TPGEmulator.hpp
+    TPGUtils.hpp
 )
 
 ##############################################################################

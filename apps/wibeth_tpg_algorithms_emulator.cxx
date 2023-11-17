@@ -46,8 +46,7 @@ using namespace dunedaq::hdf5libs;
 
 using dunedaq::readoutlibs::logging::TLVL_BOOKKEEPING;
 
-
-
+ 
 // =================================================================
 //                       MAIN
 // =================================================================
@@ -57,7 +56,6 @@ main(int argc, char** argv)
 
     CLI::App app{ "TPG algorithms emulator" };
 
-    // Set default input frame file
     std::string file_path_input = "";
     app.add_option("-f,--file-path-input", file_path_input, "Path to the input file");
 
@@ -93,7 +91,7 @@ main(int argc, char** argv)
     // =================================================================
 
     // AAA: maybe this constructor should accept a config file...
-    tpg_emulator emulator(save_adc_data, save_trigprim, parse_trigger_primitive, select_algorithm, select_channel_map) ;
+    tpg_emulator_avx emulator(save_adc_data, save_trigprim, parse_trigger_primitive, select_algorithm, select_channel_map);
     emulator.set_tpg_threshold(tpg_threshold);
     emulator.set_CPU_affinity(core_number);
     emulator.initialize();
@@ -135,6 +133,8 @@ main(int argc, char** argv)
     int record_idx_TR = 0;
     int record_idx_TP = 0;
 
+    unsigned int number_TPs_from_TR = 0;
+
     // Measure the time taken to read the whole trigger record file
     auto start_test = std::chrono::high_resolution_clock::now();  
 
@@ -145,9 +145,44 @@ main(int argc, char** argv)
 
         if (record_idx_TR <= num_TR_to_read || num_TR_to_read == -1 ) {  
 
-          emulator.process_fragment(std::move(frag_ptr), record_idx_TR, record_idx_TP);
+          uint32_t element_id = 0;
+          if (frag_ptr->get_fragment_type() == dunedaq::daqdataformats::FragmentType::kWIBEth) {
+            
+            element_id = frag_ptr->get_element_id().id;
+            int num_frames =
+              (frag_ptr->get_size() - sizeof(dunedaq::daqdataformats::FragmentHeader)) / sizeof(dunedaq::fddetdataformats::WIBEthFrame);                
+            TLOG_DEBUG(TLVL_BOOKKEEPING) << "Trigger Record number " << record_idx_TR << " has "   << num_frames << " frames" ;
+            
+            for (int i = 0; i < num_frames; ++i) {
+              // Read the Trigger Record data as a WIBEth frame
+              auto fr = reinterpret_cast<dunedaq::fddetdataformats::WIBEthFrame*>(
+                static_cast<char*>(frag_ptr->get_data()) + i * sizeof(dunedaq::fddetdataformats::WIBEthFrame)
+              );
+  
+              emulator.register_channel_map(fr);
+      
+              // Execute the TPG algorithm on the WIBEth adapter frames
+              auto fp = reinterpret_cast<dunedaq::fdreadoutlibs::types::DUNEWIBEthTypeAdapter*>(fr);
+              
         
-        } 
+              emulator.execute_tpg(fp);
+      
+      
+            } // end loop over number of frames      
+            // Finished processing all the frames for the given WIBEth fragment
+            ++record_idx_TR;
+          } // if trigger record is WIBEth type
+          else if (frag_ptr->get_fragment_type() == dunedaq::daqdataformats::FragmentType::kTriggerPrimitive) {
+            // Parse only the Trigger Primitives with the same ID of the ones with data frames
+            // AAA: NOT SURE OF THIS STATEMENT!! (INTRODUCED TO AVOID SAME TPs from multiple trigger id values)
+            if (frag_ptr->get_element_id().id == element_id) {
+              if (parse_trigger_primitive) {
+                process_trigger_primitive(std::move(frag_ptr), record_idx_TP, number_TPs_from_TR, save_trigprim);
+                ++record_idx_TP;
+              }
+            }                  
+          } // if trigger record is TriggerPrimitive type
+        }
         
         
       } // loop over all the fragments in a single trigger record    
@@ -161,10 +196,10 @@ main(int argc, char** argv)
 
 
     TLOG_DEBUG(TLVL_BOOKKEEPING) << "Elapsed time for reading input file [ms]: " << elapsed_milliseconds;
-    std::cout << "Found in total " << emulator.get_total_hit_number() << " hits" << std::endl;
+    std::cout << "Found in total " << emulator.get_total_hits() << " hits" << std::endl;
 
     if (parse_trigger_primitive) {
-      std::cout << "Found in total  (from Trigger Primitive objects) " << emulator.get_total_hits_trigger_primitive() << " TPs" << std::endl;
+      std::cout << "Found in total  (from Trigger Record) " << number_TPs_from_TR << " TPs" << std::endl;
     }
     
 
