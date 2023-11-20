@@ -21,33 +21,18 @@ find_package(hdf5libs REQUIRED)
 # Dependency sets
 set(TPGTOOLS_DEPENDENCIES
 #tools
-  Folly::folly
   ers::ers
   logging::logging
 #dunedaq
-  appfwk::appfwk
   readoutlibs::readoutlibs
   fdreadoutlibs::fdreadoutlibs
-  opmonlib::opmonlib
   daqdataformats::daqdataformats
   detdataformats::detdataformats
   fddetdataformats::fddetdataformats
-  trigger::trigger
-  triggeralgs::triggeralgs
   detchannelmaps::detchannelmaps
   hdf5libs::hdf5libs
 )
 
-set(INCLUDE_DIR "include/tpgtools/")
-
-set(sources_tpgemulator
-    TPGEmulator.cpp
-)
-
-set(includes_tpgemulator
-    TPGEmulator.hpp
-    TPGUtils.hpp
-)
 
 ##############################################################################
 # Extra options and tweaks
