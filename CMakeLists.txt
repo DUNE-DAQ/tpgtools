@@ -66,4 +66,4 @@ daq_add_application(wibeth_binary_frame_reader wibeth_binary_frame_reader.cxx LI
 
 ##############################################################################
 # Installation
-#daq_install()
+daq_install()
