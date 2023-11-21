@@ -129,8 +129,6 @@ void tpg_emulator_avx::extract_hits(uint16_t* output_location, uint64_t timestam
     if (!m_select_channel_map.empty()) {
       TLOG() << "Using channel map: " << m_select_channel_map;
       m_channel_map = dunedaq::detchannelmaps::make_map(m_select_channel_map);
-    } else {
-      TLOG() << "*** No channel map has been provided. " ;
     }
 
     // Initialize frame handler
@@ -237,9 +235,8 @@ void tpg_emulator_naive::initialize()  {
   if (!m_select_channel_map.empty()) {
     TLOG() << "Using channel map: " << m_select_channel_map;
     m_channel_map = dunedaq::detchannelmaps::make_map(m_select_channel_map);
-  } else {
-    TLOG() << "*** No channel map has been provided. " ;
-  }
+  } 
+   
   // Initialize frame handler
   m_frame_handler.initialize(m_tpg_threshold);
 };
