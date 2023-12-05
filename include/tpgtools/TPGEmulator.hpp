@@ -41,6 +41,10 @@ public:
     m_select_channel_map = select_channel_map;
 
   }
+  tpg_emulator_base(tpg_emulator_base const&) = delete;
+  tpg_emulator_base(tpg_emulator_base&&) = delete;
+  tpg_emulator_base& operator=(tpg_emulator_base const&) = delete;
+  tpg_emulator_base& operator=(tpg_emulator_base&&) = delete;
 
   virtual ~tpg_emulator_base() = default;
 

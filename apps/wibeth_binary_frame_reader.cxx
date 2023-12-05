@@ -30,6 +30,8 @@
 
 #include "logging/Logging.hpp"
 
+#include "CLI/CLI.hpp"
+
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -37,12 +39,6 @@
 using namespace dunedaq::hdf5libs;
 using namespace dunedaq::daqdataformats;
 
-
-void
-print_usage()
-{
-  TLOG() << "Usage: wibeth_binary_frame_reader <input_file_name> ";
-}
 
 
 class FrameFile
@@ -117,16 +113,23 @@ protected:
 int main(int argc, char** argv)
 {
  
+  CLI::App app{ "WIBEth frame reader" };
 
-  if (argc != 2) {
-    print_usage();
-    return 1;
+  std::string file_path_input = "";
+  app.add_option("-f,--file-path-input", file_path_input, "Path to the input file");
+
+  int input_ch = -1;
+  app.add_option("-c,--channel", input_ch, "Input channel to read [0,63]. Defeault: read all the channels");
+
+  CLI11_PARSE(app, argc, argv);
+
+  if (input_ch > 63 || input_ch < -1) {
+    throw std::runtime_error("Not a valid channel number. Insert a value between 0 and 63.");
+
   }
 
-  const std::string ifile_name = std::string(argv[1]);
-
   // Read file
-  FrameFile input_file = FrameFile(ifile_name.c_str()); 
+  FrameFile input_file = FrameFile(file_path_input.c_str()); 
 
   std::cout << "Size of the input file " << input_file.length() << std::endl;
   std::cout << "Number of frames " << input_file.num_frames() << std::endl;
@@ -137,10 +140,15 @@ int main(int argc, char** argv)
     std::cout << "========== FRAME_NUM " << i <<  std::endl;
     output_frame = input_file.frame(i);
     for (int itime=0; itime<64; ++itime) {
-      for (int ch=0; ch<64; ++ch) {
-        uint16_t adc_val = output_frame->get_adc(ch, itime);
-        std::cout << "Output ADC value: " << adc_val << "\t\t\tFrame: " << i << " \t\tChannel: " << ch << " \t\tTimeSample: " << itime <<  std::endl;
-      }
+      if (input_ch == -1) {
+        for (int ch=0; ch<64; ++ch) {
+          uint16_t adc_val = output_frame->get_adc(ch, itime);
+          std::cout << "Output ADC value: " << adc_val << "\t\t\tFrame: " << i << " \t\tChannel: " << ch << " \t\tTimeSample: " << itime <<  std::endl;
+        }
+      } else {
+        uint16_t adc_val = output_frame->get_adc(input_ch, itime);
+        std::cout << "Output ADC value: " << adc_val << "\t\t\tFrame: " << i << " \t\tChannel: " << input_ch << " \t\tTimeSample: " << itime <<  std::endl;
+      } 
    }
   }
 
