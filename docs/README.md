@@ -44,10 +44,18 @@ $ wibeth_tpg_algorithms_emulator -f swtest_run000035_0000_dataflow0_datawriter_0
 
 * `wibeth_binary_frame_modifier` is used to create a custom WIBEth frame file suitable for testing different patterns. The application will produce an output file `wibeth_output.bin`. There are no command line options, please refer to the code for further details (e.g. what ADC value to set, which time frame to use, etc.). 
 
-* `plot_trigprim_output_data.py.py` plots the Trigger Primitive output file obtained through `wibeth_tpg_algorithms_emulator` (when `save_trigprim` flag is enabled) and produces a plot called `output_trigger_primitives.png` . This script requires the use of `matplotlib`. To use the script run the following command: 
+* `plot_trigprim_output_data.py` plots the Trigger Primitive output file obtained through `wibeth_tpg_algorithms_emulator` (when `save_trigprim` flag is enabled) and produces a plot called `output_trigger_primitives.png` . This script requires the use of `matplotlib`. To use the script run the following command: 
 ```sh
 python3 plot_trigprim_output_data.py  -f TP_OUTPUT.TXT
 ```
+
+* `streamed_TPs_to_text` tool used to streamed TPs from an HDF5 file (e.g. TPSTream recording) into the text format. Example of usage: 
+```sh
+streamed_TPs_to_text -i INPUT_TPSTREAM.hdf5  -o OUTPUT.txt
+```
+
+* `check_fragment_TPs` tool for reading TP fragments from file and check that they have start times within the request window
+
 
 #### Setup matplotlib on NP04 machines (e.g. `np04-srv-019`)
 To use the `matplotlib` python module run the following command on a console where the DUNE-DAQ software area has not been sourced:
