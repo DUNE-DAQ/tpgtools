@@ -35,6 +35,10 @@
 #include <sstream>
 #include <string>
 
+#include <fmt/core.h>
+#include <fmt/format.h>
+
+
 using namespace dunedaq::hdf5libs;
 using namespace dunedaq::daqdataformats;
 
@@ -131,9 +135,9 @@ int main(int argc, char** argv)
   // Read file
   FrameFile input_file = FrameFile(ifile_name.c_str()); 
 
-  std::cout << "Size of the input file " << input_file.length() << std::endl;
-  std::cout << "Number of frames " << input_file.num_frames() << std::endl;
-   
+  fmt::print("Size of the input file {} \n", input_file.length());
+  fmt::print("Number of frames {} \n", input_file.num_frames());
+    
   // Write output file 
   std::fstream output_file;
   output_file.open("wibeth_output.bin", std::ios::app | std::ios::binary);
@@ -141,19 +145,20 @@ int main(int argc, char** argv)
 
   dunedaq::fddetdataformats::WIBEthFrame* output_frame; 
   for (size_t i=0; i<input_file.num_frames(); i++) {
-    std::cout << "========== FRAME_NUM " << i <<  std::endl;
+    fmt::print("========== FRAME_NUM {} \n", i);
     output_frame = input_file.frame(i);
     for (int itime=0; itime<64; ++itime) {
       for (int ch=0; ch<64; ++ch) {
         output_frame->set_adc(ch, itime, 0);
       }
       if (itime == 0) {
-        std::cout << "Nothing to do for first frame" << std::endl;
+        fmt::print("Nothing to do for first frame \n");
       } else {	
         output_frame->set_adc(input_ch, itime, 666);      
       }
       uint16_t adc_val = output_frame->get_adc(input_ch, itime);
-      std::cout << "Output ADC value: " << adc_val << "\t\t\tFrame: " << i << " \t\tChannel: " << input_ch << " \t\tTimeSample: " << itime <<  std::endl;
+      fmt::print("Output ADC value: {} \t\t\tFrame: {} \t\tChannel: {} \t\tTimeSample: {} \n", adc_val, i, input_ch, itime);
+
     }
   output_file.write(reinterpret_cast<char*>(output_frame), sizeof(dunedaq::fddetdataformats::WIBEthFrame) );  
   }

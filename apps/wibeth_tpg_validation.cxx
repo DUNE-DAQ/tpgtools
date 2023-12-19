@@ -15,6 +15,9 @@
 #include "CLI/CLI.hpp"
 #include <iostream>
 
+#include <fmt/core.h>
+#include <fmt/format.h>
+
 
 // =================================================================
 //                       MAIN
@@ -65,7 +68,7 @@ main(int argc, char** argv)
     auto& source = m_source_buffer->get(); 
     const int total_num_frames = m_source_buffer->num_elements(); // file_ size/chunk_size = 180 
 
-    std::cout << "Number of DUNE WIBEth frames in the input file: " << total_num_frames << std::endl;
+    fmt::print("Number of DUNE WIBEth frames in the input file: {} \n", total_num_frames);
 
     
     // =================================================================
@@ -104,8 +107,9 @@ main(int argc, char** argv)
 
 
     }
-    std::cout << "\n\n===============================" << std::endl;
-    std::cout << "Found in total " << emulator->get_total_hits() << " hits." << std::endl;
+    fmt::print("\n\n=============================== \n");
+    fmt::print("Found in total {} hits. \n", emulator->get_total_hits());
+    
 
 
 }
