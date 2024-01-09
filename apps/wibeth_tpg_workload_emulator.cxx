@@ -16,6 +16,8 @@
 #include "CLI/CLI.hpp"
 #include <iostream>
 
+#include <fmt/core.h>
+#include <fmt/format.h>
 
 // =================================================================
 //                       MAIN
@@ -69,8 +71,7 @@ main(int argc, char** argv)
     auto& source = m_source_buffer->get(); 
     const int total_num_frames = m_source_buffer->num_elements(); // file_ size/chunk_size = 180 
 
-    std::cout << "Number of DUNE WIBEth frames in the input file: " << total_num_frames << std::endl;
-
+    fmt::print("Number of DUNE WIBEth frames in the input file: {} \n", total_num_frames);
     
     // =================================================================
     //                       Setup the SWTPG
@@ -125,7 +126,7 @@ main(int argc, char** argv)
         // Calculate elapsed time in seconds  
         auto now = std::chrono::high_resolution_clock::now();
         auto elapsed_seconds = std::chrono::duration_cast<std::chrono::seconds>(now - start_test).count();  
-        std::cout << "Elapsed time [s]: " << elapsed_seconds << std::endl;      
+        fmt::print("Elapsed time [s]: {} \n", elapsed_seconds);
 	
 	      frame_repeat_index = 0;        
 
@@ -139,9 +140,9 @@ main(int argc, char** argv)
 
       limiter.limit();
 
-    }
-    std::cout << "\n\n===============================" << std::endl;
-    std::cout << "Found in total " << emulator->get_total_hits() << " hits." << std::endl;
+    }    
+    fmt::print("\n\n=============================== \n");
+    fmt::print("Found in total {}  hits. \n", emulator->get_total_hits());
 
 }
 

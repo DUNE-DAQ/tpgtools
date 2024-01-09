@@ -14,6 +14,9 @@
 #include <iostream>
 #include <fstream>
 
+#include <fmt/core.h>
+#include <fmt/format.h>
+
 using namespace dunedaq::hdf5libs;
 
 using dunedaq::readoutlibs::logging::TLVL_BOOKKEEPING;
@@ -31,7 +34,7 @@ main(int argc, char** argv)
     std::string file_path_input = "";
     app.add_option("-f,--file-path-input", file_path_input, "Path to the input file");
 
-    std::string select_algorithm = "";
+    std::string select_algorithm = "SimpleThreshold";
     app.add_option("-a,--algorithm", select_algorithm, "TPG Algorithm (SimpleThreshold / AbsRS)");
 
     std::string select_implementation = "AVX";
@@ -102,15 +105,15 @@ main(int argc, char** argv)
     auto app_name = h5_raw_data_file.get_attribute<std::string>("application_name");
 
 
-    std::cout << "Run number: " << run_number << std::endl; 
-    std::cout << "Recorded size [bytes]: " << recorded_size << std::endl; 
-    std::cout << "Recorded type: " << record_type << std::endl; 
+    fmt::print("Run number {} \n", run_number);
+    fmt::print("Recorded size [bytes]: {} \n", recorded_size);
+    fmt::print("Recorded type: {} \n", record_type);
 
 
     auto records = h5_raw_data_file.get_all_record_ids();
 
     if (records.empty()) {
-      TLOG() << "*** NO TRIGGER RECORDS FOUND" ;    
+      fmt::print("*** NO TRIGGER RECORDS FOUND \n");  
       return 0;
     }
 
@@ -180,10 +183,11 @@ main(int argc, char** argv)
 
 
     TLOG_DEBUG(TLVL_BOOKKEEPING) << "Elapsed time for reading input file [ms]: " << elapsed_milliseconds;
-    std::cout << "Found in total " << emulator->get_total_hits() << " hits" << std::endl;
+    fmt::print("Found in total {} hits \n", emulator->get_total_hits());
+
 
     if (parse_trigger_primitive) {
-      std::cout << "Found in total  (from Trigger Record) " << number_TPs_from_TR << " TPs" << std::endl;
+      fmt::print("Found in total (from Trigger Record) {} TPs \n", number_TPs_from_TR);
     }
     
 

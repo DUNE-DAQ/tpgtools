@@ -17,6 +17,8 @@ find_package(trigger REQUIRED)
 find_package(hdf5libs REQUIRED)
 
 
+find_package(Boost COMPONENTS unit_test_framework REQUIRED)
+
 ##############################################################################
 # Dependency sets
 set(TPGTOOLS_DEPENDENCIES
@@ -62,6 +64,16 @@ daq_add_application(wibeth_binary_frame_modifier wibeth_binary_frame_modifier.cx
 
 daq_add_application(wib2_binary_frame_reader wib2_binary_frame_reader.cxx LINK_LIBRARIES ${PROJECT_NAME} CLI11::CLI11)
 daq_add_application(wibeth_binary_frame_reader wibeth_binary_frame_reader.cxx LINK_LIBRARIES ${PROJECT_NAME} CLI11::CLI11)
+
+daq_add_application(streamed_TPs_to_text streamed_TPs_to_text.cxx LINK_LIBRARIES  ${PROJECT_NAME} CLI11::CLI11 trigger)
+daq_add_application(check_fragment_TPs check_fragment_TPs.cxx LINK_LIBRARIES  ${PROJECT_NAME} CLI11::CLI11 trigger )
+
+
+##############################################################################
+# Unit test
+
+# See https://dune-daq-sw.readthedocs.io/en/latest/packages/daq-cmake/#daq_add_unit_test
+daq_add_unit_test(Placeholder_test LINK_LIBRARIES)  # Placeholder_test should be replaced with real unit tests
 
 
 ##############################################################################
