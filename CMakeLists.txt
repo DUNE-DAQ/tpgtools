@@ -73,8 +73,6 @@ daq_add_application(check_fragment_TPs check_fragment_TPs.cxx LINK_LIBRARIES  ${
 # Unit test
 
 # See https://dune-daq-sw.readthedocs.io/en/latest/packages/daq-cmake/#daq_add_unit_test
-daq_add_unit_test(Placeholder_test LINK_LIBRARIES)  # Placeholder_test should be replaced with real unit tests
-
 
 ##############################################################################
 # Installation
