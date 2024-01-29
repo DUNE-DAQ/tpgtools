@@ -24,7 +24,7 @@ def tp_to_numpy(tp):
 # convert a TriggerPrimitive to a numpy array.
 # This function also orders the TPs by time_start
 # instead of having them organized in fragments
-def tpstream_hdf5_to_numpy(filename, n_records_to_read=-1, n_tps_to_convert=-1):
+def convert_tpstream_to_numpy(filename, n_records_to_read=-1, n_tps_to_convert=-1):
 
     hdf5_file = HDF5RawDataFile(filename)
 
@@ -37,13 +37,12 @@ def tpstream_hdf5_to_numpy(filename, n_records_to_read=-1, n_tps_to_convert=-1):
     # if argument is not passed, read all records
     if n_records_to_read == -1:
         n_records_to_read = len(records)
-        print(f'Number of records to process: {n_records_to_read}')
+        print(f'Number of records to read: {n_records_to_read}')
     elif n_records_to_read > len(records):
         n_records_to_read = len(records)
-        print(f'Number of records to process is greater than the number of records in the file. 
-            Setting number of records to process to: {n_records_to_read}')
+        print(f'Number of records to process is greater than the number of records in the file. Setting number of records to process to: {n_records_to_read}')
     else:
-        print(f'Number of records to process: {n_records_to_read}')
+        print(f'Number of records to read: {n_records_to_read}')
 
     all_tps = []
 
@@ -81,6 +80,7 @@ def tpstream_hdf5_to_numpy(filename, n_records_to_read=-1, n_tps_to_convert=-1):
                                              all_tps[:,5], all_tps[:,6], all_tps[:,7], all_tps[:,8], all_tps[:,9], all_tps[:,10]], dtype=dt)
 
                 print(f"Final shape: {all_tps.shape}") # TODO put under verbose mode?
+                # print (all_tps)
                 return all_tps                
 
             n_tps_remaining[index] -= 1

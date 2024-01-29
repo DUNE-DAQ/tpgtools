@@ -391,78 +391,78 @@ def save_image(tps_to_draw, channel_map, output_path, output_name='test', min_tp
     if show_image:
         show_image(tps_to_draw, channel_map, min_tps_to_create_img=min_tps_to_create_img, make_fixed_size=make_fixed_size, width=width, height=height, x_margin=x_margin, y_margin=y_margin, img_u=img_u, img_v=img_v, img_x=img_x)
 
-def create_dataset(groups, channel_map, make_fixed_size=True, width=70, height=1000, x_margin=5, y_margin=50, n_views=3, use_sparse=False, unknown_label=99, idx=7, dict_lab=None):
-    '''
-    :param groups: list of groups
-    :param make_fixed_size: if True, the image will have fixed size, otherwise it will be as big as the TPs
-    :param width: width of the image
-    :param height: height of the image
-    :param x_margin: margin on the x axis
-    :param y_margin: margin on the y axis
-    :return: dataset [[img],[label]] in numpy array format
-    '''
-    if not use_sparse:
-        # Each pixel must have a value between 0 and 255. Maybe problematic for high ADC values. I can't affort havier data types for the moment
-        dataset_img = np.zeros((len(groups), height, width, n_views), dtype=np.uint8) 
-        dataset_label = np.empty((len(groups), 1), dtype=np.uint8)
-        i=0
-        for group in (groups):
+# def create_dataset(groups, channel_map, make_fixed_size=True, width=70, height=1000, x_margin=5, y_margin=50, n_views=3, use_sparse=False, unknown_label=99, idx=7, dict_lab=None):
+#     '''
+#     :param groups: list of groups
+#     :param make_fixed_size: if True, the image will have fixed size, otherwise it will be as big as the TPs
+#     :param width: width of the image
+#     :param height: height of the image
+#     :param x_margin: margin on the x axis
+#     :param y_margin: margin on the y axis
+#     :return: dataset [[img],[label]] in numpy array format
+#     '''
+#     if not use_sparse:
+#         # Each pixel must have a value between 0 and 255. Maybe problematic for high ADC values. I can't afford havier data types for the moment
+#         dataset_img = np.zeros((len(groups), height, width, n_views), dtype=np.uint8) 
+#         dataset_label = np.empty((len(groups), 1), dtype=np.uint8)
+#         i=0
+#         for group in (groups):
 
-            # create the label. I have to do it this way because the label is not the same for all the datasets
-            label = label_generator_snana(group, unknown_label=unknown_label, idx=idx, dict_lab=dict_lab)
-            # append to the dataset as an array of arrays
-            if n_views > 1:
-                img_u, img_v, img_x = all_views_img_maker(np.array(group), channel_map, make_fixed_size=make_fixed_size, width=width, height=height, x_margin=x_margin, y_margin=y_margin)
-                if img_u[0, 0] != -1:
-                    dataset_img[i, :, :, 0] = img_u
-                if img_v[0, 0] != -1:
-                    dataset_img[i, :, :, 1] = img_v
-                if img_x[0, 0] != -1:
-                    dataset_img[i, :, :, 2] = img_x 
-            else:  
-                img = from_tp_to_imgs(np.array(group), make_fixed_size=make_fixed_size, width=width, height=height, x_margin=x_margin, y_margin=y_margin)
-                if img[0, 0] != -1:
-                    dataset_img[i, :, :, 0] = img
+#             # create the label. I have to do it this way because the label is not the same for all the datasets
+#             label = label_generator_snana(group, unknown_label=unknown_label, idx=idx, dict_lab=dict_lab)
+#             # append to the dataset as an array of arrays
+#             if n_views > 1:
+#                 img_u, img_v, img_x = all_views_img_maker(np.array(group), channel_map, make_fixed_size=make_fixed_size, width=width, height=height, x_margin=x_margin, y_margin=y_margin)
+#                 if img_u[0, 0] != -1:
+#                     dataset_img[i, :, :, 0] = img_u
+#                 if img_v[0, 0] != -1:
+#                     dataset_img[i, :, :, 1] = img_v
+#                 if img_x[0, 0] != -1:
+#                     dataset_img[i, :, :, 2] = img_x 
+#             else:  
+#                 img = from_tp_to_imgs(np.array(group), make_fixed_size=make_fixed_size, width=width, height=height, x_margin=x_margin, y_margin=y_margin)
+#                 if img[0, 0] != -1:
+#                     dataset_img[i, :, :, 0] = img
 
-            dataset_label[i] = [label]            
-            i+=1
-    else:
-        dataset_img = []
-        dataset_label = np.empty((len(groups), 1), dtype=np.uint8)
-        i=0
-        for group in (groups):
+#             dataset_label[i] = [label]            
+#             i+=1
+#     else:
+#         dataset_img = []
+#         dataset_label = np.empty((len(groups), 1), dtype=np.uint8)
+#         i=0
+#         for group in (groups):
 
-            # create the label. I have to do it this way because the label is not the same for all the datasets
-            label = label_generator_snana(group, unknown_label=unknown_label, idx=idx, dict_lab=dict_lab)
-            # append to the dataset as an array of arrays
-            if n_views > 1:
-                img_u, img_v, img_x = all_views_img_maker(np.array(group), channel_map, make_fixed_size=make_fixed_size, width=width, height=height, x_margin=x_margin, y_margin=y_margin)
-                if img_u[0, 0] != -1:
-                    img_u = sparse.csr_matrix(img_u)
-                if img_v[0, 0] != -1:
-                    img_v = sparse.csr_matrix(img_v)
-                if img_x[0, 0] != -1:
-                    img_x = sparse.csr_matrix(img_x)
-                dataset_img.append([img_u, img_v, img_x])
-            else:  
-                img = from_tp_to_imgs(np.array(group), make_fixed_size=make_fixed_size, width=width, height=height, x_margin=x_margin, y_margin=y_margin)
-                if img[0, 0] != -1:
-                    img = sparse.csr_matrix(img)
-                dataset_img.append([img.data, img.indices, img.indptr])
-            dataset_label[i] = [label]            
-            i+=1
+#             # create the label. I have to do it this way because the label is not the same for all the datasets
+#             label = label_generator_snana(group, unknown_label=unknown_label, idx=idx, dict_lab=dict_lab)
+#             # append to the dataset as an array of arrays
+#             if n_views > 1:
+#                 img_u, img_v, img_x = all_views_img_maker(np.array(group), channel_map, make_fixed_size=make_fixed_size, width=width, height=height, x_margin=x_margin, y_margin=y_margin)
+#                 if img_u[0, 0] != -1:
+#                     img_u = sparse.csr_matrix(img_u)
+#                 if img_v[0, 0] != -1:
+#                     img_v = sparse.csr_matrix(img_v)
+#                 if img_x[0, 0] != -1:
+#                     img_x = sparse.csr_matrix(img_x)
+#                 dataset_img.append([img_u, img_v, img_x])
+#             else:  
+#                 img = from_tp_to_imgs(np.array(group), make_fixed_size=make_fixed_size, width=width, height=height, x_margin=x_margin, y_margin=y_margin)
+#                 if img[0, 0] != -1:
+#                     img = sparse.csr_matrix(img)
+#                 dataset_img.append([img.data, img.indices, img.indptr])
+#             dataset_label[i] = [label]            
+#             i+=1
         
-        dataset_img = np.array(dataset_img, dtype=object)
+#         dataset_img = np.array(dataset_img, dtype=object)
 
-    return (dataset_img, dataset_label)
+#     return (dataset_img, dataset_label)
 
-def label_generator_snana(group,idx=7, unknown_label=10, dict_lab=None):
+# def label_generator_snana(group,idx=7, unknown_label=10, dict_lab=None):
 
-    label = group[0]["truth"]
-    if np.all(group["truth"] == label):
-        if dict_lab is None:
-            return label
-        else:
-            return dict_lab[label]
-    else:
-        return unknown_label
+#     label = group[0]["truth"]
+#     if np.all(group["truth"] == label):
+#         if dict_lab is None:
+#             return label
+#         else:
+#             return dict_lab[label]
+#     else:
+#         return unknown_label

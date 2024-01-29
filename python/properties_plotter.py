@@ -47,14 +47,16 @@ def save_tps_as_list(filename, max_tps):
         del data
     
         # offset to have the first TP at t=0
-        time_shift = time_start[0] 
-        time_start -= time_shift
+        # time_shift = time_start[0] 
+        # time_start -= time_shift
+        # time_peak -= time_shift
         # time_start *= 16e-9 # convert to seconds, TODO choose if to have this or not
+        # time_peak *= 16e-9 # convert to seconds, TODO choose if to have this or not
             
         # Create a structured array with column names
-        dt = np.dtype([('time_start', float), ('time_over_threshold', float), ('time_peak', float), ('channel', int), ('adc_integral', float), ('adc_peak', float), ('detid', int), ('type', int), ('algorithm', int), ('version', int), ('flag', int)])
+        dt = np.dtype([('time_start', float), ('time_over_threshold', float), ('time_peak', float), ('channel', int), ('adc_integral', int), ('adc_peak', int), ('detid', int), ('type', int), ('algorithm', int), ('version', int), ('flag', int)])
         # Fill tp_list with the arrays of the variables
-        tp_list = np.rec.fromarrays([time_start, time_peak, time_over_threshold, channel, adc_integral, adc_peak, detid, type, algorithm, version, flag], dtype=dt)
+        tp_list = np.rec.fromarrays([time_start, time_over_threshold, time_peak, channel, adc_integral, adc_peak, detid, type, algorithm, version, flag], dtype=dt)
         
         # delete the appo vectors
         del time_start, time_over_threshold, time_peak, channel, adc_integral, adc_peak, detid, type, algorithm, version, flag
@@ -62,26 +64,33 @@ def save_tps_as_list(filename, max_tps):
         # sort the list by time_start
         tp_list.sort(order='time_start')
         
+        print (" ")
         print ("Saved ", len(tp_list), " TPs from file ", filename)
         print (" ")
         
         return tp_list
     
     elif filename.endswith('.hdf5'):
-        # TODO change function to use nTPs instead of nRecords
-        print ("WARNING: when reading hdf5 files, what is used is not the number of TPs but the number of records. This will be changed.")
-        # the function should be changed to already provide the correct format TODO
-        tps_array = convert_tpstream_to_numpy(filename=filename, num_records=max_tps)
-        # move out of this scope?
-        dt = np.dtype([('time_start', float), ('time_over_threshold', float), ('time_peak', float), ('channel', int), ('adc_integral', float), ('adc_peak', float), ('detid', int), ('type', int), ('algorithm', int), ('version', int), ('flag', int)])
-        # maybe move dt also to hdf_converter_libs?
-        tp_list = np.rec.fromarrays([tps_array[:,0], tps_array[:,1], tps_array[:,2], tps_array[:,3], tps_array[:,4], tps_array[:,5], tps_array[:,6], tps_array[:,7], tps_array[:,8], tps_array[:,9], tps_array[:,10]], dtype=dt)
         
+        # it's also possible to select a number of records to read, if -1 it will read all but only save max_tps
+        tps_array = convert_tpstream_to_numpy(filename=filename, n_tps_to_convert=max_tps, n_records_to_read=-1)
+        
+        print (" ")
+        print ("Saved ", len(tps_array), " TPs from file ", filename)
+        print (" ")
+        
+        # move out to a global place? TODO
+        dt = np.dtype([('time_start', float), ('time_over_threshold', float), ('time_peak', float), ('channel', int), ('adc_integral', float), ('adc_peak', float), ('detid', int), ('type', int), ('algorithm', int), ('version', int), ('flag', int)])
+        
+        tp_list = []
+        for i in range(len(tps_array)):
+            tp_list.append(np.rec.fromarrays([tps_array[i][0], tps_array[i][1], tps_array[i][2], tps_array[i][3], tps_array[i][4], tps_array[i][5], tps_array[i][6], tps_array[i][7], tps_array[i][8], tps_array[i][9], tps_array[i][10]], dtype=dt))
+                    
         # delete the appo vectors
         del tps_array
         
         # sort the list by time_start
-        tp_list.sort(order='time_start')
+        tp_list = sorted(tp_list, key=lambda x: x['time_start'])
         
         return tp_list
     else:
@@ -100,6 +109,8 @@ legend_properties = {'weight': 'bold', 'size': 'small'}
 
 
 def plotTimePeak(tps_lists, file_names, superimpose=False, quantile=1, y_min=0, y_max=None, output_folder=None, show=False):
+    
+    plt.figure()
     fig = plt.subplot(111)  # for when superimpose is true
     
     # compute x_max using quantile, considering all the files
@@ -111,11 +122,16 @@ def plotTimePeak(tps_lists, file_names, superimpose=False, quantile=1, y_min=0, 
     del time_peak_all_files # free memory
 
     for i, tps_file in enumerate(tps_lists):
-        time_peak = [tp['time_peak'] - tp['time_start'] for tp in tps_file]
+        
+        time_peak = []
+        for tp in tps_file:
+            time_peak.append(tp['time_peak'] - tp['time_start'])
+        
         this_filename = file_names[i].split('/')[-1]
 
         
         label = f"Time Peak, file {this_filename}"
+        this_filename = this_filename.split('.')[0]
         
         if not superimpose:
             fig = plt.subplot(111)
@@ -149,6 +165,8 @@ def plotTimePeak(tps_lists, file_names, superimpose=False, quantile=1, y_min=0, 
 
 
 def  plotTimeOverThreshold(tps_lists, file_names, superimpose=False, quantile=1, y_min=0, y_max=None, output_folder=None, show=False):
+    
+    plt.figure()
     fig = plt.subplot(111)  # for when superimpose is true
     
     # compute x_max using quantile, considering all the files
@@ -164,6 +182,7 @@ def  plotTimeOverThreshold(tps_lists, file_names, superimpose=False, quantile=1,
         this_filename = file_names[i].split('/')[-1]
      
         label = f"Time over Threshold, file {this_filename}"
+        this_filename = this_filename.split('.')[0]
         
         if not superimpose:
             fig = plt.subplot(111)
@@ -198,6 +217,8 @@ def  plotTimeOverThreshold(tps_lists, file_names, superimpose=False, quantile=1,
 
 
 def plotChannel(tps_lists, file_names, superimpose=False, x_min=0, x_max=None, y_min=0, y_max=None, output_folder=None, show=False):
+    
+    plt.figure()
     fig = plt.subplot(111)  # for when superimpose is true
     
     channel_all_files = []
@@ -209,6 +230,7 @@ def plotChannel(tps_lists, file_names, superimpose=False, x_min=0, x_max=None, y
         this_filename = file_names[i].split('/')[-1]
      
         label = f"Channel, file {this_filename}"
+        this_filename = this_filename.split('.')[0]
         
         if not superimpose:
             fig = plt.subplot(111)
@@ -249,6 +271,8 @@ def plotChannel(tps_lists, file_names, superimpose=False, x_min=0, x_max=None, y
 
 
 def plotADCIntegral(tps_lists, file_names, superimpose=False, quantile=1, y_min=0, y_max=None, output_folder=None, show=False):
+    
+    plt.figure()
     fig = plt.subplot(111)  # for when superimpose is true
     
     # compute x_max using quantile, considering all the files
@@ -265,6 +289,7 @@ def plotADCIntegral(tps_lists, file_names, superimpose=False, quantile=1, y_min=
         this_filename = file_names[i].split('/')[-1]
      
         label = f"ADC Integral, file {this_filename}"
+        this_filename = this_filename.split('.')[0]
         
         if not superimpose:
             fig = plt.subplot(111)
@@ -300,6 +325,8 @@ def plotADCIntegral(tps_lists, file_names, superimpose=False, quantile=1, y_min=
 
 
 def plotADCPeak(tps_lists, file_names, superimpose=False, quantile=1, y_min=0, y_max=None, output_folder=None, show=False):
+    
+    plt.figure()
     fig = plt.subplot(111)  # for when superimpose is true
     
     # compute x_max using quantile, considering all the files
@@ -315,6 +342,7 @@ def plotADCPeak(tps_lists, file_names, superimpose=False, quantile=1, y_min=0, y
         this_filename = file_names[i].split('/')[-1]
      
         label = f"ADC Peak, file {this_filename}"
+        this_filename = this_filename.split('.')[0]
         
         if not superimpose:
             fig = plt.subplot(111)
@@ -345,14 +373,16 @@ def plotADCPeak(tps_lists, file_names, superimpose=False, quantile=1, y_min=0, y
     return
 
 
-def plotDetId(tps_lists, file_names, superimpose=False, quantile=1, y_min=0, y_max=None, output_folder=None, show=False):
+def plotDetId(tps_lists, file_names, superimpose=False, y_min=0, y_max=None, output_folder=None, show=False):
+    
+    plt.figure()
     fig = plt.subplot(111)  # for when superimpose is true
     
     # compute x_max using quantile, considering all the files
     detid_all_files = []
     for tps_file in tps_lists:
         detid_all_files += [tp['detid'] for tp in tps_file]
-    x_max = np.quantile(detid_all_files, quantile)
+    x_max = np.max(detid_all_files)
     
     del detid_all_files # free memory
 
@@ -361,12 +391,12 @@ def plotDetId(tps_lists, file_names, superimpose=False, quantile=1, y_min=0, y_m
         this_filename = file_names[i].split('/')[-1]
      
         label = f"DetId, file {this_filename}"
+        this_filename = this_filename.split('.')[0]
         
         if not superimpose:
             fig = plt.subplot(111)
             plt.grid(grid_in_not_superimpose) 
         fig.set_xlabel("DetId")
-        # set ticks on x axis to be integers from 0 to x_max
         fig.set_xticks(np.arange(0, x_max + 1, 1))
 
         if y_min is not None:
@@ -374,8 +404,8 @@ def plotDetId(tps_lists, file_names, superimpose=False, quantile=1, y_min=0, y_m
         if y_max is not None:
             fig.set_ylim(top=y_max)
  
-        # bin size is optimized to have a number of bins depending on x_max, thus based on the quantile
-        fig.hist(detid, bins=np.arange(-0.5, x_max + 0.5), label=label, alpha=alpha, edgecolor='black')
+        # bin size from 0 to x_max
+        fig.hist(detid, bins= x_max +1, label=label, alpha=alpha, edgecolor='black')
         
         if not superimpose:
             fig.set_title(f"DetId, file {this_filename}", fontweight='bold')
