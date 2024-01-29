@@ -80,7 +80,6 @@ def convert_tpstream_to_numpy(filename, n_records_to_read=-1, n_tps_to_convert=-
                                              all_tps[:,5], all_tps[:,6], all_tps[:,7], all_tps[:,8], all_tps[:,9], all_tps[:,10]], dtype=dt)
 
                 print(f"Final shape: {all_tps.shape}") # TODO put under verbose mode?
-                # print (all_tps)
                 return all_tps                
 
             n_tps_remaining[index] -= 1
