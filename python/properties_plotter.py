@@ -8,97 +8,10 @@
 """
 
 import numpy as np
-import sys
-# sys.path.append('..') 
-from hdf5_converter import convert_tpstream_to_numpy 
 import matplotlib.pyplot as plt
 
-
-# Function to save tps in a list
-def save_tps_as_list(filename, max_tps):
-    if filename.endswith('.txt'):
-        data = np.genfromtxt(filename, delimiter=' ', max_rows=max_tps)
-        data = data.transpose()
-        
-
-        # TP variables are 11
-        if len(data) == 11:
-            daq = True
-            print ("File ", filename, " comes from DAQ, has correct number of variables")
-        else:
-            print ("WARNING: TPs in this file have an unexpected number of variables:", len(data))
-            print (" ")
-            # return # could stop, but for now we continue
-
-        # appo vectors just for clarity, could be avoided
-        # THIS IS THE CORRECT ORDER OF THE VARIABLES
-        time_start = data[0]
-        time_over_threshold = data[1]
-        time_peak = data[2] 
-        channel = data[3]
-        adc_integral = data[4]
-        adc_peak = data[5]
-        detid = data[6]
-        type = data[7]
-        algorithm = data[8]
-        version = data[9]
-        flag = data[10]
-        
-        del data
-    
-        # offset to have the first TP at t=0
-        # time_shift = time_start[0] 
-        # time_start -= time_shift
-        # time_peak -= time_shift
-        # time_start *= 16e-9 # convert to seconds, TODO choose if to have this or not
-        # time_peak *= 16e-9 # convert to seconds, TODO choose if to have this or not
-            
-        # Create a structured array with column names
-        dt = np.dtype([('time_start', float), ('time_over_threshold', float), ('time_peak', float), ('channel', int), ('adc_integral', int), ('adc_peak', int), ('detid', int), ('type', int), ('algorithm', int), ('version', int), ('flag', int)])
-        # Fill tp_list with the arrays of the variables
-        tp_list = np.rec.fromarrays([time_start, time_over_threshold, time_peak, channel, adc_integral, adc_peak, detid, type, algorithm, version, flag], dtype=dt)
-        
-        # delete the appo vectors
-        del time_start, time_over_threshold, time_peak, channel, adc_integral, adc_peak, detid, type, algorithm, version, flag
-        
-        # sort the list by time_start
-        tp_list.sort(order='time_start')
-        
-        print (" ")
-        print ("Saved ", len(tp_list), " TPs from file ", filename)
-        print (" ")
-        
-        return tp_list
-    
-    elif filename.endswith('.hdf5'):
-        
-        # it's also possible to select a number of records to read, if -1 it will read all but only save max_tps
-        tps_array = convert_tpstream_to_numpy(filename=filename, n_tps_to_convert=max_tps, n_records_to_read=-1)
-        
-        print (" ")
-        print ("Saved ", len(tps_array), " TPs from file ", filename)
-        print (" ")
-        
-        # move out to a global place? TODO
-        dt = np.dtype([('time_start', float), ('time_over_threshold', float), ('time_peak', float), ('channel', int), ('adc_integral', float), ('adc_peak', float), ('detid', int), ('type', int), ('algorithm', int), ('version', int), ('flag', int)])
-        
-        tp_list = []
-        for i in range(len(tps_array)):
-            tp_list.append(np.rec.fromarrays([tps_array[i][0], tps_array[i][1], tps_array[i][2], tps_array[i][3], tps_array[i][4], tps_array[i][5], tps_array[i][6], tps_array[i][7], tps_array[i][8], tps_array[i][9], tps_array[i][10]], dtype=dt))
-                    
-        # delete the appo vectors
-        del tps_array
-        
-        # sort the list by time_start
-        tp_list = sorted(tp_list, key=lambda x: x['time_start'])
-        
-        return tp_list
-    else:
-        print("Unsupported format:", filename.split('.')[-1])
-        return None
-
-#################################################################################]
-# FUNCTIONS TO PLOT THE TPS
+from utils import save_tps_as_list, create_channel_map_array
+from hdf5_converter import convert_tpstream_to_numpy 
 
 # Common options, can move elsewhere TODO
 alpha = 0.4 # transparency of the histograms, lower is more opaque

@@ -15,7 +15,9 @@ import os
 import matplotlib.pyplot as plt
 # check if ok in daq framework
 from mpl_toolkits.axes_grid1 import ImageGrid 
-from scipy import sparse
+# from scipy import sparse
+
+from utils import save_tps_array, create_channel_map_array
 
 
 def create_image_one_view(tps_to_draw, make_fixed_size=False, width=500, height=1000, x_margin=10, y_margin=100, y_min_overall=-1, y_max_overall=-1):
@@ -61,7 +63,11 @@ def create_image_one_view(tps_to_draw, make_fixed_size=False, width=500, height=
         for tp in tps_to_draw:
             x = (tp["channel"] - x_min) + x_margin
             y_start = (tp["time_start"] - t_start) + y_margin
-            y_end = (tp["time_start"] + tp["time_over_threshold"] - t_start) + y_margin
+            y_end = (y_start + tp["time_over_threshold"])
+            # print all the values used in the next line
+            print(f'x: {x}, y_start: {y_start}, y_end: {y_end}, tp["adc_integral"]: {tp["adc_integral"]}, y_end - y_start: {y_end - y_start}')
+            # print the tp
+            print(tp)
             img[int(y_start)-1:int(y_end), int(x)-1] = tp["adc_integral"]/(y_end - y_start)
     else:
     # We stretch the image inwards if needed but we do not upscale it. In this second case we build a padded image
@@ -106,7 +112,7 @@ def create_image_one_view(tps_to_draw, make_fixed_size=False, width=500, height=
    
     return img
 
-def create_images(tps_to_draw, channel_map, min_tps_to_create_img=2, make_fixed_size=False, width=500, height=1000, x_margin=10, y_margin=200, only_collection=True):
+def create_images(tps_to_draw, channel_map, min_tps_to_create_img=2, make_fixed_size=False, width=500, height=1000, x_margin=10, y_margin=200, only_collection=False):
     '''
     :param tps_to_draw: all trigger primitives to draw
     :param channel_map: channel map array
@@ -129,7 +135,7 @@ def create_images(tps_to_draw, channel_map, min_tps_to_create_img=2, make_fixed_
     if tps_x.shape[0] >= min_tps_to_create_img:
         img_x = create_image_one_view(tps_x, make_fixed_size=make_fixed_size, width=width, height=height, x_margin=x_margin, y_margin=y_margin, y_min_overall=y_min_overall, y_max_overall=y_max_overall)
     if only_collection:
-        return img_x # calling here to avoid wasting execution time
+        return img_u, img_v, img_x # calling here to avoid wasting execution time. U and V will be empty
     
     # U plane, take only the tps where the corrisponding position in the channel map is 0      
     tps_u = tps_to_draw[np.where(channel_map[tps_to_draw["channel"]% total_channels, 1] == 0)]
@@ -143,7 +149,7 @@ def create_images(tps_to_draw, channel_map, min_tps_to_create_img=2, make_fixed_
     
     return img_u, img_v, img_x
 
-def show_image(tps_to_draw, channel_map, min_tps_to_create_img=2, make_fixed_size=False, width=500, height=1000, x_margin=10, y_margin=200, img_u, img_v, img_x):
+def show_image(tps_to_draw, channel_map, min_tps_to_create_img=2, make_fixed_size=False, width=500, height=1000, x_margin=10, y_margin=200, only_collection=False, img_u=None, img_v=None, img_x=None):
     '''
     :param tps_to_draw: all trigger primitives in the group
     :param channel_map: channel map
@@ -160,7 +166,7 @@ def show_image(tps_to_draw, channel_map, min_tps_to_create_img=2, make_fixed_siz
     
     # If not given as argument, create images
     if img_u[0, 0] == -1 or img_v[0, 0] == -1 or img_x[0, 0] == -1:
-        img_u, img_v, img_x = create_images(tps_to_draw, channel_map, min_tps_to_create_img=min_tps_to_create_img, make_fixed_size=make_fixed_size, width=width, height=height, x_margin=x_margin, y_margin=y_margin)
+        img_u, img_v, img_x = create_images(tps_to_draw, channel_map, min_tps_to_create_img=min_tps_to_create_img, make_fixed_size=make_fixed_size, width=width, height=height, x_margin=x_margin, y_margin=y_margin, only_collection=only_collection)
 
     n_views = 0
     #show images
@@ -204,7 +210,7 @@ def show_image(tps_to_draw, channel_map, min_tps_to_create_img=2, make_fixed_siz
         grid.axes_llc.set_yticks(np.arange(0, img_u.shape[0], 100))
         plt.show()
 
-def save_image(tps_to_draw, channel_map, output_path, output_name='test', min_tps_to_create_img=2, make_fixed_size=False, width=500, height=1000, x_margin=10, y_margin=200, show_image=False):
+def save_image(tps_to_draw, channel_map, output_path, output_name='test', min_tps_to_create_img=2, make_fixed_size=False, width=500, height=1000, x_margin=10, y_margin=200, only_collection=False, show=False):
     '''
     :param tps_to_draw: all trigger primitives in the event
     :param channel_map: channel map
@@ -220,7 +226,7 @@ def save_image(tps_to_draw, channel_map, output_path, output_name='test', min_tp
     total_channels = channel_map.shape[0]
 
     #create images
-    img_u, img_v, img_x = create_images(tps_to_draw, channel_map, min_tps_to_create_img=min_tps_to_create_img, make_fixed_size=make_fixed_size, width=width, height=height, x_margin=x_margin, y_margin=y_margin)
+    img_u, img_v, img_x = create_images(tps_to_draw, channel_map, min_tps_to_create_img=min_tps_to_create_img, make_fixed_size=make_fixed_size, width=width, height=height, x_margin=x_margin, y_margin=y_margin, only_collection=only_collection)
     max_pixel_value_overall = np.max([np.max(img_u), np.max(img_v), np.max(img_x)])
 
     #save images
@@ -345,7 +351,9 @@ def save_image(tps_to_draw, channel_map, output_path, output_name='test', min_tp
         plt.close()
     if n_views == 0:
         print(f'No images saved! Do a better grouping algorithm! You had {tps_to_draw.shape[0]} tps and {min_tps_to_create_img} as min_tps_to_create_img.' )
-        print(f'You have {tps_to_draw[np.where(channel_map[tps_to_draw[:, 3]% total_channels, 1] == 0)].shape[0]} U tps, {tps_to_draw[np.where(channel_map[tps_to_draw[:, 3]% total_channels, 1] == 1)].shape[0]} V tps and {tps_to_draw[np.where(channel_map[tps_to_draw[:, 3]% total_channels, 1] == 2)].shape[0]} Z tps.')
+        print(f'You have {tps_to_draw[np.where(channel_map[tps_to_draw["channel"]% total_channels, 1] == 0)].shape[0]} U tps,')
+        print(f'{tps_to_draw[np.where(channel_map[tps_to_draw["channel"]% total_channels, 1] == 1)].shape[0]} V tps')
+        print(f' and {tps_to_draw[np.where(channel_map[tps_to_draw["channel"]% total_channels, 1] == 2)].shape[0]} Z tps.')
 
 
     if n_views > 1:
@@ -388,8 +396,8 @@ def save_image(tps_to_draw, channel_map, output_path, output_name='test', min_tp
         plt.close()
     
     # just a more compact way of calling this instead of having to repeat the arguments
-    if show_image:
-        show_image(tps_to_draw, channel_map, min_tps_to_create_img=min_tps_to_create_img, make_fixed_size=make_fixed_size, width=width, height=height, x_margin=x_margin, y_margin=y_margin, img_u=img_u, img_v=img_v, img_x=img_x)
+    if show:
+        show_image(tps_to_draw, channel_map, min_tps_to_create_img=min_tps_to_create_img, make_fixed_size=make_fixed_size, width=width, height=height, x_margin=x_margin, y_margin=y_margin, only_collection=only_collection, img_u=img_u, img_v=img_v, img_x=img_x)
 
 # def create_dataset(groups, channel_map, make_fixed_size=True, width=70, height=1000, x_margin=5, y_margin=50, n_views=3, use_sparse=False, unknown_label=99, idx=7, dict_lab=None):
 #     '''

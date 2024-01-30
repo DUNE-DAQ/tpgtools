@@ -12,35 +12,9 @@ import sys
 # import time
 import os
 
-# import detchannelmaps
+from utils import save_tps_array, create_channel_map_array
 
-# This function creates a channel map array, 
-# where the first column is the channel number and the second column 
-# is the plane view (0 for U, 1 for V, 2 for X).
-# TODO understand if this can be avoided by reading from detchannelmaps
-def create_channel_map_array(which_detector="APA"):
-    '''
-    :param which_detector, options are: 
-     - APA for Horizontal Drift 
-     - CRP for Vertical Drift (valid also for coldbox)
-     - 50L for 50L detector, VD technology
-    :return: channel map array
-    '''
-    # create the channel map array
-    if which_detector == "APA":
-        channel_map = np.empty((2560, 2), dtype=int)
-        channel_map[:, 0] = np.linspace(0, 2559, 2560, dtype=int)
-        channel_map[:, 1] = np.concatenate((np.zeros(800), np.ones(800), np.ones(960)*2))        
-    elif which_detector == "CRP":
-        channel_map = np.empty((3072, 2), dtype=int)
-        channel_map[:, 0] = np.linspace(0, 3071, 3072, dtype=int)
-        channel_map[:, 1] = np.concatenate((np.zeros(952), np.ones(952), np.ones(1168)*2))
-    elif which_detector == "50L":
-        channel_map = np.empty((128, 2), dtype=int)
-        channel_map[:, 0] = np.linspace(0, 127, 128, dtype=int)
-        # channel_map[:, 1] = np.concatenate(np.ones(49)*2, np.zeros(39), np.ones(40))
-        channel_map[:, 1] = np.concatenate((np.zeros(39), np.ones(40), np.ones(49)*2))
-    return channel_map
+# import detchannelmaps
 
 # This function creates the groups basing on channel and time proximity
 def make_groups(all_tps, channel_map, ticks_limit=3, channel_limit=1, min_tps_to_group=2, group_induction_view=False):
@@ -97,13 +71,13 @@ def make_groups(all_tps, channel_map, ticks_limit=3, channel_limit=1, min_tps_to
                         idx += 1
                 else:
                     if len(candidate) >= min_tps_to_group:
-                        groups.append(np.array(candidate, dtype=int))
+                        groups.append(np.array(candidate))
             if not appended:
                 buffer.append([tp])
     if len(buffer) > 0:
         for candidate in buffer:
             if len(candidate) >= min_tps_to_group:
-                groups.append(np.array(candidate, dtype=int))
+                groups.append(np.array(candidate))
 
     groups = np.array(groups, dtype=object)
     return groups
