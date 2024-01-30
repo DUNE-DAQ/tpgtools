@@ -14,6 +14,7 @@ import argparse
 import sys
 sys.path.append("../python/")
 from properties_plotter import *
+from utils import * 
 
 
 # parse from command line the args.files and the number of tps to plot
@@ -41,6 +42,7 @@ if args.all:
     args.detid = True
 
 # print recap of options
+print ("#############################################")
 print ("Selected options:")
 print (" - Files: " + str(args.files))
 print (" - Number of TPs: " + str(args.number_tps))
@@ -53,6 +55,7 @@ print (" - ADC peak: " + str(args.adc_peak))
 print (" - Channel: " + str(args.channel))
 print (" - Detid: " + str(args.detid))
 print (" - Show: " + str(args.show))
+print ("#############################################")
     
 # read the file(s) and create arrays of TPs, using the class in TriggerPrimitive.py
 # the code will deduce if the file is coming from offline or online data
