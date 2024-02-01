@@ -65,7 +65,7 @@ for tpFile_path in  args.files:
     
     print ("Reading file: " + tpFile_path)
     
-    this_tps_list = save_tps_as_list(tpFile_path, args.number_tps)
+    this_tps_list = save_tps_array(tpFile_path, args.number_tps)
     tps_lists.append(this_tps_list)
 
 
