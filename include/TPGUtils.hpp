@@ -43,7 +43,8 @@ void SetAffinityThread(int executorId) {
 }
 
 // Function save the TP data to a file 
-void save_TP_object( triggeralgs::TriggerPrimitive trigprim, std::string algo ){
+void save_TP_object( triggeralgs::TriggerPrimitive trigprim, std::string algo, 
+		     std::string out_suffix ){
   std::ofstream out_file; 
 
   auto t = std::time(nullptr);
@@ -52,7 +53,7 @@ void save_TP_object( triggeralgs::TriggerPrimitive trigprim, std::string algo ){
   oss << std::put_time(&tm, "%d-%m-%Y_%H-%M");
   auto date_time_str = oss.str();
 
-  std::string file_name = "TP_dump_" + algo + "_" + date_time_str + ".txt";
+  std::string file_name = "TP_dump_" + algo + "_" + date_time_str + "_" + out_suffix + ".txt";
   out_file.open(file_name.c_str(), std::ofstream::app);
 
   //offline channel, start time, time over threshold [ns], peak_time, ADC sum, amplitude    

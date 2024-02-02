@@ -125,7 +125,7 @@ public:
 using tpg_emulator_base::tpg_emulator_base;
 
 void extract_hits(uint16_t* output_location, uint64_t timestamp,
-                      bool save_trigprim); 
+                      bool save_trigprim, std::string out_suffix); 
 
 void execute_tpg(const dunedaq::fdreadoutlibs::types::DUNEWIBEthTypeAdapter* fp);
 
@@ -148,7 +148,7 @@ using tpg_emulator_base::tpg_emulator_base;
 
 
 void extract_hits(uint16_t* output_location, uint64_t timestamp,
-                      bool save_trigprim);
+                      bool save_trigprim, std::string out_suffix);
 
 void execute_tpg(const dunedaq::fdreadoutlibs::types::DUNEWIBEthTypeAdapter* fp);
 
