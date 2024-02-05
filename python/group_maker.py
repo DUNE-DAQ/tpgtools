@@ -79,19 +79,21 @@ def make_groups(all_tps, channel_map, ticks_limit=3, channel_limit=1, min_tps_to
             if len(candidate) >= min_tps_to_group:
                 groups.append(np.array(candidate))
 
-    groups = np.array(groups, dtype=object)
     return groups
 
 # This function creates groups basing only on time proximity, used when including induction view
 def make_groups_only_by_time(all_tps, channel_map, ticks_limit=5, min_tps_to_group=4):
     groups = []
-    current_group = np.array([all_tps[0]])
+    current_group = [all_tps[0]]
+    # print names of dict
+    print ("all_tps.dtype.names")
+    print(all_tps.dtype.names)
     for tp in all_tps[1:]:
         if tp["time_start"] - np.max(current_group["time_start"]+current_group["time_over_threshold"]) <= ticks_limit:
             current_group = np.append(current_group, tp)
         else:
             if len(current_group) >= min_tps_to_group:
                 groups.append(current_group)
-            current_group = np.array([tp])
-
+            current_group = [tp]
+ 
     return groups

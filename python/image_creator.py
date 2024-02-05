@@ -20,7 +20,7 @@ from mpl_toolkits.axes_grid1 import ImageGrid
 from utils import save_tps_array, create_channel_map_array
 
 
-def create_image_one_view(tps_to_draw, make_fixed_size=False, width=500, height=1000, x_margin=10, y_margin=100, y_min_overall=-1, y_max_overall=-1):
+def create_image_one_view(tps_to_draw, make_fixed_size=False, width=100, height=100, x_margin=10, y_margin=100, y_min_overall=-1, y_max_overall=-1, verbose=False):
     '''
     :param tps_to_draw: all trigger primitives to draw
     :param make_fixed_size: if True, the image will have fixed size, otherwise it will be as big as the TPs
@@ -36,15 +36,15 @@ def create_image_one_view(tps_to_draw, make_fixed_size=False, width=500, height=
     if y_min_overall != -1:
         t_start = y_min_overall
     else:
-        t_start = tps_to_draw[0]["time_start"] 
+        t_start = tps_to_draw[0]['time_start'] 
 
     if y_max_overall != -1:
         t_end = y_max_overall
     else:
-        t_end = np.max(tps_to_draw["time_start"] + tps_to_draw["time_over_threshold"])
+        t_end = np.max(tps_to_draw['time_start'] + tps_to_draw['time_over_threshold'])
     
-    x_max = (tps_to_draw["channel"].max())
-    x_min = (tps_to_draw["channel"].min())
+    x_max = (tps_to_draw['channel'].max())
+    x_min = (tps_to_draw['channel'].min())
 
     x_range = x_max - x_min 
     y_range = int((t_end - t_start))
@@ -61,14 +61,15 @@ def create_image_one_view(tps_to_draw, make_fixed_size=False, width=500, height=
     # fill image
     if (not make_fixed_size):
         for tp in tps_to_draw:
-            x = (tp["channel"] - x_min) + x_margin
-            y_start = (tp["time_start"] - t_start) + y_margin
-            y_end = (y_start + tp["time_over_threshold"])
-            # print all the values used in the next line
-            print(f'x: {x}, y_start: {y_start}, y_end: {y_end}, tp["adc_integral"]: {tp["adc_integral"]}, y_end - y_start: {y_end - y_start}')
-            # print the tp
-            print(tp)
-            img[int(y_start)-1:int(y_end), int(x)-1] = tp["adc_integral"]/(y_end - y_start)
+            x = (tp['channel'] - x_min) + x_margin
+            y_start = (tp['time_start'] - t_start) + y_margin
+            y_end = (y_start + tp['time_over_threshold'])
+            
+            # print all the values used in the next line 
+            if verbose:
+                print(f'x: {x}, y_start: {y_start}, y_end: {y_end}, tp["adc_integral"]: {tp["adc_integral"]}, y_end - y_start: {y_end - y_start}')
+            
+            img[int(y_start)-1:int(y_end), int(x)-1] = tp['adc_integral']/(y_end - y_start)
     else:
     # We stretch the image inwards if needed but we do not upscale it. In this second case we build a padded image
         if img_width < x_range:
@@ -87,32 +88,32 @@ def create_image_one_view(tps_to_draw, make_fixed_size=False, width=500, height=
 
         if stretch_x & stretch_y:
             for tp in tps_to_draw:
-                x=(tp["channel"] - x_min)/x_range * (img_width - 2*x_margin) + x_margin
-                y_start = (tp["time_start"] - t_start)/y_range * (img_height - 2*y_margin) + y_margin
-                y_end = (tp["time_start"] + tp["time_over_threshold"] - t_start)/y_range * (img_height - 2*y_margin) + y_margin
-                img[int(y_start)-1:int(y_end), int(x)-1] = tp["adc_integral"]/(y_end - y_start)
+                x=(tp['channel'] - x_min)/x_range * (img_width - 2*x_margin) + x_margin
+                y_start = (tp['time_start'] - t_start)/y_range * (img_height - 2*y_margin) + y_margin
+                y_end = (tp['time_start'] + tp['time_over_threshold'] - t_start)/y_range * (img_height - 2*y_margin) + y_margin
+                img[int(y_start)-1:int(y_end), int(x)-1] = tp['adc_integral']/(y_end - y_start)
         elif stretch_x:
             for tp in tps_to_draw:                
-                x=(tp["channel"] - x_min)/x_range * (img_width - 2*x_margin) + x_margin
-                y_start = (tp["time_start"] - t_start) + y_margin
-                y_end = (tp["time_start"] + tp["time_over_threshold"] - t_start) + y_margin
-                img[int(y_start)-1:int(y_end), int(x)-1] = tp["adc_integral"]/(y_end - y_start)
+                x=(tp['channel'] - x_min)/x_range * (img_width - 2*x_margin) + x_margin
+                y_start = (tp['time_start'] - t_start) + y_margin
+                y_end = (tp['time_start'] + tp['time_over_threshold'] - t_start) + y_margin
+                img[int(y_start)-1:int(y_end), int(x)-1] = tp['adc_integral']/(y_end - y_start)
         elif stretch_y:
             for tp in tps_to_draw:
-                x = (tp["channel"] - x_min) + x_margin
-                y_start = (tp["time_start"] - t_start)/y_range * (img_height - 2*y_margin) + y_margin
-                y_end = (tp["time_start"] + tp["time_over_threshold"] - t_start)/y_range * (img_height - 2*y_margin) + y_margin
-                img[int(y_start):int(y_end), int(x)-1] = tp["adc_integral"]/(y_end - y_start)
+                x = (tp['channel'] - x_min) + x_margin
+                y_start = (tp['time_start'] - t_start)/y_range * (img_height - 2*y_margin) + y_margin
+                y_end = (tp['time_start'] + tp['time_over_threshold'] - t_start)/y_range * (img_height - 2*y_margin) + y_margin
+                img[int(y_start):int(y_end), int(x)-1] = tp['adc_integral']/(y_end - y_start)
         else:
             for tp in tps_to_draw:
-                x = (tp["channel"] - x_min) + x_margin
-                y_start = (tp["time_start"] - t_start) + y_margin
-                y_end = (tp["time_start"] + tp["time_over_threshold"] - t_start) + y_margin
-                img[int(y_start)-1:int(y_end), int(x)-1] = tp["adc_integral"]/(y_end - y_start)
+                x = (tp['channel'] - x_min) + x_margin
+                y_start = (tp['time_start'] - t_start) + y_margin
+                y_end = (tp['time_start'] + tp['time_over_threshold'] - t_start) + y_margin
+                img[int(y_start)-1:int(y_end), int(x)-1] = tp['adc_integral']/(y_end - y_start)
    
     return img
 
-def create_images(tps_to_draw, channel_map, min_tps_to_create_img=2, make_fixed_size=False, width=500, height=1000, x_margin=10, y_margin=200, only_collection=False):
+def create_images(tps_to_draw, channel_map, min_tps_to_create_img=2, make_fixed_size=False, width=500, height=1000, x_margin=10, y_margin=200, only_collection=False, verbose=False):
     '''
     :param tps_to_draw: all trigger primitives to draw
     :param channel_map: channel map array
@@ -124,29 +125,34 @@ def create_images(tps_to_draw, channel_map, min_tps_to_create_img=2, make_fixed_
     :param y_margin: margin on the y axis
     :return: images or -1 if there are not enough TPs
     '''
-
+    print ("Creating images...")
     y_min_overall = tps_to_draw[0]["time_start"]
-    y_max_overall = np.max(tps_to_draw["time_start"] + tps_to_draw["time_over_threshold"])
+    y_max_overall = np.max(tps_to_draw['time_start'] + tps_to_draw['time_over_threshold'])
     total_channels = channel_map.shape[0]
     img_u, img_v, img_x = np.array([[-1]]), np.array([[-1]]), np.array([[-1]])
 
     # X plane, take only the tps where the corrisponding position in the channel map is 2
-    tps_x = tps_to_draw[np.where(channel_map[tps_to_draw["channel"]% total_channels, 1] == 2)]
+    print ("Creating X plane images...")
+    tps_x = tps_to_draw[np.where(channel_map[tps_to_draw['channel']% total_channels, 1] == 2)]
     if tps_x.shape[0] >= min_tps_to_create_img:
         img_x = create_image_one_view(tps_x, make_fixed_size=make_fixed_size, width=width, height=height, x_margin=x_margin, y_margin=y_margin, y_min_overall=y_min_overall, y_max_overall=y_max_overall)
     if only_collection:
+        print (" ")
         return img_u, img_v, img_x # calling here to avoid wasting execution time. U and V will be empty
     
     # U plane, take only the tps where the corrisponding position in the channel map is 0      
-    tps_u = tps_to_draw[np.where(channel_map[tps_to_draw["channel"]% total_channels, 1] == 0)]
+    print ("Creating U plane images...")
+    tps_u = tps_to_draw[np.where(channel_map[tps_to_draw['channel']% total_channels, 1] == 0)]
     if tps_u.shape[0] >= min_tps_to_create_img:
         img_u = create_image_one_view(tps_u, make_fixed_size=make_fixed_size, width=width, height=height, x_margin=x_margin, y_margin=y_margin, y_min_overall=y_min_overall, y_max_overall=y_max_overall)
     
     # V plane, take only the tps where the corrisponding position in the channel map is 1
-    tps_v = tps_to_draw[np.where(channel_map[tps_to_draw["channel"]% total_channels, 1] == 1)]
+    print ("Creating V plane images...")
+    tps_v = tps_to_draw[np.where(channel_map[tps_to_draw['channel']% total_channels, 1] == 1)]
     if tps_v.shape[0] >= min_tps_to_create_img: 
         img_v = create_image_one_view(tps_v, make_fixed_size=make_fixed_size, width=width, height=height, x_margin=x_margin, y_margin=y_margin, y_min_overall=y_min_overall, y_max_overall=y_max_overall)
     
+    print (" ")
     return img_u, img_v, img_x
 
 def show_image(tps_to_draw, channel_map, min_tps_to_create_img=2, make_fixed_size=False, width=500, height=1000, x_margin=10, y_margin=200, only_collection=False, img_u=None, img_v=None, img_x=None):
@@ -210,7 +216,7 @@ def show_image(tps_to_draw, channel_map, min_tps_to_create_img=2, make_fixed_siz
         grid.axes_llc.set_yticks(np.arange(0, img_u.shape[0], 100))
         plt.show()
 
-def save_image(tps_to_draw, channel_map, output_path, output_name='test', min_tps_to_create_img=2, make_fixed_size=False, width=500, height=1000, x_margin=10, y_margin=200, only_collection=False, show=False):
+def save_image(tps_to_draw, channel_map, output_path, output_name='test', min_tps_to_create_img=2, make_fixed_size=False, width=200, height=300, x_margin=10, y_margin=200, only_collection=False, show=False):
     '''
     :param tps_to_draw: all trigger primitives in the event
     :param channel_map: channel map
@@ -233,13 +239,13 @@ def save_image(tps_to_draw, channel_map, output_path, output_name='test', min_tp
     if not os.path.exists(output_path):
         os.makedirs(output_path)
 
-    x_max = (tps_to_draw["channel"].max())
-    x_min = (tps_to_draw["channel"].min())
+    x_max = (tps_to_draw['channel'].max())
+    x_min = (tps_to_draw['channel'].min())
 
     x_range = x_max - x_min 
-    t_start = tps_to_draw[0]["time_start"]
+    t_start = tps_to_draw[0]['time_start']
 
-    t_end = np.max(tps_to_draw["time_start"] + tps_to_draw["time_over_threshold"])
+    t_end = np.max(tps_to_draw['time_start'] + tps_to_draw['time_over_threshold'])
     y_range = int((t_end - t_start))
 
     # create the image
@@ -258,10 +264,10 @@ def save_image(tps_to_draw, channel_map, output_path, output_name='test', min_tp
     n_views = 0
 
     if img_u[0, 0] != -1:
-        tps_u = tps_to_draw[np.where(channel_map[tps_to_draw["channel"]% total_channels, 1] == 0)]
+        tps_u = tps_to_draw[np.where(channel_map[tps_to_draw['channel']% total_channels, 1] == 0)]
         
-        x_min_u = (tps_u["channel"].min())
-        x_max_u = (tps_u["channel"].max())
+        x_min_u = (tps_u['channel'].min())
+        x_max_u = (tps_u['channel'].max())
         x_range_u = x_max_u - x_min_u
         x_margin_u = x_margin
 
@@ -271,12 +277,12 @@ def save_image(tps_to_draw, channel_map, output_path, output_name='test', min_tp
         xticks_labels_u = [x_min_u-x_margin_u + i*(x_range_u + 2*x_margin_u)//2 for i in range(2)]
 
         n_views += 1
-        plt.figure(figsize=(10, 26))
+        plt.figure(figsize=(20, 100))
         plt.title('U plane')
         plt.imshow(img_u)
         # plt.colorbar()
         # add x and y labels
-        plt.xlabel("Channel")
+        plt.xlabel('channel')
         plt.ylabel("Time (ticks)")
         # set y axis ticks
         plt.yticks(ticks=np.arange(0, img_u.shape[0], img_u.shape[0]/10), labels=yticks_labels)
@@ -288,10 +294,10 @@ def save_image(tps_to_draw, channel_map, output_path, output_name='test', min_tp
         plt.close()
 
     if img_v[0, 0] != -1:
-        tps_v = tps_to_draw[np.where(channel_map[tps_to_draw["channel"]% total_channels, 1] == 1)]
+        tps_v = tps_to_draw[np.where(channel_map[tps_to_draw['channel']% total_channels, 1] == 1)]
 
-        x_min_v = (tps_v["channel"].min())
-        x_max_v = (tps_v["channel"].max())
+        x_min_v = (tps_v['channel'].min())
+        x_max_v = (tps_v['channel'].max())
         x_range_v = x_max_v - x_min_v
 
         x_margin_v = x_margin
@@ -302,12 +308,12 @@ def save_image(tps_to_draw, channel_map, output_path, output_name='test', min_tp
         xticks_labels_v = [x_min_v-x_margin_v + i*(x_range_v + 2*x_margin_v)//2 for i in range(2)]
         
         n_views += 1
-        plt.figure(figsize=(10, 26))    
+        plt.figure(figsize=(20, 100))    
         plt.title('V plane')
         plt.imshow(img_v)
         # plt.colorbar()
         # add x and y labels
-        plt.xlabel("Channel")
+        plt.xlabel('channel')
         plt.ylabel("Time (ticks)")
 
         # set y axis ticks
@@ -320,10 +326,10 @@ def save_image(tps_to_draw, channel_map, output_path, output_name='test', min_tp
         plt.close()
 
     if img_x[0, 0] != -1:
-        tps_x = tps_to_draw[np.where(channel_map[tps_to_draw["channel"]% total_channels, 1] == 2)]
+        tps_x = tps_to_draw[np.where(channel_map[tps_to_draw['channel']% total_channels, 1] == 2)]
 
-        x_min_x = (tps_x["channel"].min())
-        x_max_x = (tps_x["channel"].max())
+        x_min_x = (tps_x['channel'].min())
+        x_max_x = (tps_x['channel'].max())
         x_range_x = x_max_x - x_min_x
 
         x_margin_x = x_margin
@@ -334,12 +340,12 @@ def save_image(tps_to_draw, channel_map, output_path, output_name='test', min_tp
         xticks_labels_x = [x_min_x-x_margin_x + i*(x_range_x + 2*x_margin_x)//2 for i in range(2)]
 
         n_views += 1
-        plt.figure(figsize=(10, 26))
+        plt.figure(figsize=(20, 100))
         plt.title('X plane')
         plt.imshow(img_x)
         # plt.colorbar()
         # add x and y labels
-        plt.xlabel("Channel")
+        plt.xlabel('channel')
         plt.ylabel("Time (ticks)")
         # set y axis ticks
         plt.yticks(ticks=np.arange(0, img_x.shape[0], img_x.shape[0]/10), labels=yticks_labels)
@@ -350,14 +356,15 @@ def save_image(tps_to_draw, channel_map, output_path, output_name='test', min_tp
         plt.savefig(output_path+ 'x_' + os.path.basename(output_name) + '.png', bbox_inches='tight', pad_inches=1)
         plt.close()
     if n_views == 0:
-        print(f'No images saved! Do a better grouping algorithm! You had {tps_to_draw.shape[0]} tps and {min_tps_to_create_img} as min_tps_to_create_img.' )
-        print(f'You have {tps_to_draw[np.where(channel_map[tps_to_draw["channel"]% total_channels, 1] == 0)].shape[0]} U tps,')
-        print(f'{tps_to_draw[np.where(channel_map[tps_to_draw["channel"]% total_channels, 1] == 1)].shape[0]} V tps')
-        print(f' and {tps_to_draw[np.where(channel_map[tps_to_draw["channel"]% total_channels, 1] == 2)].shape[0]} Z tps.')
+        print(f'No images saved, if this is unexpected you might want to change some parameters.')
+        print(f'You selected {tps_to_draw.shape[0]} tps and {min_tps_to_create_img} as minimum tps to create an image.' )
+        print(f'  You have {tps_to_draw[np.where(channel_map[tps_to_draw["channel"]% total_channels, 1] == 0)].shape[0]} U tps,')
+        print(f'  {tps_to_draw[np.where(channel_map[tps_to_draw["channel"]% total_channels, 1] == 1)].shape[0]} V tps')
+        print(f'  and {tps_to_draw[np.where(channel_map[tps_to_draw["channel"]% total_channels, 1] == 2)].shape[0]} Z tps.')
 
 
     if n_views > 1:
-        fig = plt.figure(figsize=(10, 26))
+        fig = plt.figure(figsize=(20, 100))
         grid = ImageGrid(fig, 111,          # as in plt.subplot(111)
                         nrows_ncols=(1,3),
                         axes_pad=0.5,

@@ -10,7 +10,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from utils import save_tps_as_list, create_channel_map_array
+from utils import save_tps_array, create_channel_map_array
 from hdf5_converter import convert_tpstream_to_numpy 
 
 # Common options, can move elsewhere TODO
@@ -57,7 +57,7 @@ def plotTimePeak(tps_lists, file_names, superimpose=False, quantile=1, y_min=0, 
             fig.set_ylim(top=y_max)
  
         # bin size is optimized to have a number of bins depending on x_max, thus based on the quantile
-        fig.hist(time_peak, bins=np.arange(-0.5, x_max + 0.5), label=label, alpha=alpha, edgecolor='black')
+        fig.hist(time_peak, bins=np.arange(-0.5, x_max + 0.5, 10), label=label, alpha=alpha, edgecolor='black')
 
         if not superimpose:
             fig.set_title(f"Time Peak, file {this_filename}", fontweight='bold')
@@ -77,7 +77,7 @@ def plotTimePeak(tps_lists, file_names, superimpose=False, quantile=1, y_min=0, 
     return
 
 
-def  plotTimeOverThreshold(tps_lists, file_names, superimpose=False, quantile=1, y_min=0, y_max=None, output_folder=None, show=False):
+def plotTimeOverThreshold(tps_lists, file_names, superimpose=False, quantile=1, y_min=0, y_max=None, output_folder=None, show=False):
     
     plt.figure()
     fig = plt.subplot(111)  # for when superimpose is true
@@ -108,7 +108,7 @@ def  plotTimeOverThreshold(tps_lists, file_names, superimpose=False, quantile=1,
             fig.set_ylim(top=y_max)
  
         # bin size is optimized to have a number of bins depending on x_max, thus based on the quantile
-        fig.hist(time_over_threshold, bins=np.arange(-0.5, x_max + 0.5), label=label, alpha=alpha, edgecolor='black')
+        fig.hist(time_over_threshold, bins=np.arange(-0.5, x_max + 0.5, x_max/5), label=label, alpha=alpha, edgecolor='black')
 
         if not superimpose:
             fig.set_title(f"Time over Threshold, file {this_filename}", fontweight='bold')
