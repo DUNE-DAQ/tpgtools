@@ -44,11 +44,6 @@ $ wibeth_tpg_algorithms_emulator -f swtest_run000035_0000_dataflow0_datawriter_0
 
 * `wibeth_binary_frame_modifier` is used to create a custom WIBEth frame file suitable for testing different patterns. The application will produce an output file `wibeth_output.bin`. There are no command line options, please refer to the code for further details (e.g. what ADC value to set, which time frame to use, etc.). 
 
-* `plot_trigprim_output_data.py` plots the Trigger Primitive output file obtained through `wibeth_tpg_algorithms_emulator` (when `save_trigprim` flag is enabled) and produces a plot called `output_trigger_primitives.png` . This script requires the use of `matplotlib`. To use the script run the following command: 
-```sh
-python3 plot_trigprim_output_data.py  -f TP_OUTPUT.TXT
-```
-
 * `streamed_TPs_to_text` tool used to streamed TPs from an HDF5 file (e.g. TPSTream recording) into the text format. Example of usage: 
 ```sh
 streamed_TPs_to_text -i INPUT_TPSTREAM.hdf5  -o OUTPUT.txt
@@ -56,8 +51,74 @@ streamed_TPs_to_text -i INPUT_TPSTREAM.hdf5  -o OUTPUT.txt
 
 * `check_fragment_TPs` tool for reading TP fragments from file and check that they have start times within the request window
 
+## Python utility tools for TP studies
 
-#### Setup matplotlib on NP04 machines (e.g. `np04-srv-019`)
+### Python libraries
+In the `python` directory, there are some libraries with tools to perform simple analyses on TPs, convert between formats, create images. 
+Plotting functions make use of `matplotlib`; to know how to load it in your environment, see the section below.
+
+* `hdf5_converter.py` is a library to read the hdf5 TPstream, using directly the DAQ hdf5 tools.
+
+* `utils.py` is a library with some utility functions, like the one to save TPs into a numpy array (`save_tps_array`).
+
+* `properties_plotter.py` contains some functions to plot the properties of the TPs, like the start time, time over threshold, etc. 
+They have several parameters to customize the plots, in particular in some cases the range is handled through the quantile of the distribution. 
+Default value is 1, but to get rid of outliers it can be set to 0.9, for example.
+
+* `group_maker.py` is a library to group TPs basing on channel and/or time. 
+Each group should then be a track, if the conditions are set to be strict enough (deafult is channel limit 1 and time limit 3 ticks).
+
+* `image_creator.py` contains functions to create images from TPs, that will be 2D histograms (channel vs time). 
+Also in this case, many parameters can be set to customize the images, for example to choose if to fix the size or if it will depend on the group case by case.
+
+
+### Python scripts
+In the `scripts` directory, there are some example scripts that make useof the python libraries.
+To avoid unwanted files in the repo, I added `*.png` to the `.gitignore` file.
+Taking these as inspiration, you can create your own scripts to perform the analyses you need.
+They have a verbose option (`-v`) that prints out the TPs that are being processed.
+
+#### `plot_tp_properties.py` 
+
+Script to plot all the properties of the TPs: start time, time over threshold, channel, detid, peak, peak time, integral. 
+It can accept one or more files are input, both in hdf5 or text format. 
+The flag `--superimpose` can be used to plot all the input files on the same plot. 
+Default output path is `./`, output files will be named `input_file_timeStart.png` and so on.
+You can see all options with 
+```sh
+python plot_tp_properties.py --help
+```
+
+Here an example of usage. `--all` is used to plot all the properties, but you can also choose to plot only one or some of them.
+```sh
+python plot_tp_properties.py -f INPUT_TPSTREAM.hdf5 INPUT_TPS.txt -n 1000 -e my/output/folder/ --superimpose --all
+```
+
+
+#### `create_images.py` 
+Script to create images from TP groups, ie tracks or clusters of tracks. 
+It accepts one input file (hdf5 or text) and will produce images with increasing numbering in the output directory (default is `./`).
+Default detector is "APA", but it can be changed with the flag `--detector` to "CRP" or "50L".
+The images are by default `png`, named `<view>_track<number>.png`, e. g. `u_track12.png`.
+The groups can be saved to a text file to take a look at them in a readable format, with the flag `--save-groups`.
+
+You can see full usage with `--help`, here an example:
+```sh
+python create_images.py -i INPUT_TPSTREAM.hdf5 -n 1000 -o my/output/folder/ --ticks-limit 5 --channels-limit 2 --min-tps 3 
+```
+
+
+#### Setup DAQ environment on lxplus or NP04 machines (e.g. `np04-srv-019`)
+To use the tools and scripts in this repository, the DUNE-DAQ software environment must be setup. The following commands are valid for lxplus machines and NP04 machines (e.g. `np04-srv-019`). 
+```sh
+source /cvmfs/dunedaq.opensciencegrid.org/setup_dunedaq.sh
+setup_dbt latest
+dbt-setup-release fddaq-v4.1.1
+```
+The version of the DUNE-DAQ software can also be a different one than `v4.1.1`.
+
+
+#### Setup matplotlib on lxplus or NP04 machines (e.g. `np04-srv-019`)
 To use the `matplotlib` python module run the following command on a console where the DUNE-DAQ software area has not been sourced:
 ```sh
 export PREFIX_PATH=$HOME
