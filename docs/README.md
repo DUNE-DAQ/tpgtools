@@ -104,7 +104,7 @@ The groups can be saved to a text file to take a look at them in a readable form
 
 You can see full usage with `--help`, here an example:
 ```sh
-python create_images.py -i INPUT_TPSTREAM.hdf5 -n 1000 -o my/output/folder/ --ticks-limit 5 --channels-limit 2 --min-tps 3 
+python create_images.py -i INPUT_TPSTREAM.hdf5 -n 1000 -o my/output/folder/ --ticks-limit 5 --channel-limit 2 --min-tps 3 
 ```
 
 
@@ -113,9 +113,9 @@ To use the tools and scripts in this repository, the DUNE-DAQ software environme
 ```sh
 source /cvmfs/dunedaq.opensciencegrid.org/setup_dunedaq.sh
 setup_dbt latest
-dbt-setup-release fddaq-v4.1.1
+dbt-setup-release fddaq-v4.2.0
 ```
-The version of the DUNE-DAQ software can also be a different one than `v4.1.1`.
+The version of the DUNE-DAQ software can also be a different one than `v4.2.0`.
 
 
 #### Setup matplotlib on lxplus or NP04 machines (e.g. `np04-srv-019`)
