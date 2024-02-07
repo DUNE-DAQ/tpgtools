@@ -126,7 +126,7 @@ void tpg_emulator_avx::extract_hits(uint16_t* output_location, uint64_t timestam
        
 
   // Parse the output from the TPG    
-  extract_hits(m_frame_handler.m_tpg_processing_info->output, timestamp, m_save_trigprim);
+  extract_hits(m_frame_handler.m_tpg_processing_info->output, timestamp, m_save_trigprim, m_out_suffix);
 
  }
 
@@ -238,7 +238,7 @@ void tpg_emulator_naive::execute_tpg(const dunedaq::fdreadoutlibs::types::DUNEWI
        
 
   // Parse the output from the TPG    
-  extract_hits(m_frame_handler.m_tpg_processing_info->output, timestamp, m_save_trigprim);
+  extract_hits(m_frame_handler.m_tpg_processing_info->output, timestamp, m_save_trigprim, m_out_suffix);
 
 }
 

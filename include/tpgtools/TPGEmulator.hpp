@@ -32,7 +32,8 @@ class tpg_emulator_base {
 
 public:
 
-  tpg_emulator_base(bool save_adc_data, bool save_trigprim, bool parse_trigger_primitive, std::string select_algorithm, std::string select_channel_map) {
+  tpg_emulator_base(bool save_adc_data, bool save_trigprim, bool parse_trigger_primitive, 
+		    std::string select_algorithm, std::string select_channel_map) {
 
     m_save_adc_data = save_adc_data;
     m_save_trigprim = save_trigprim;
@@ -78,6 +79,9 @@ public:
     return m_total_hits;
   }
 
+  void set_out_suffix(std::string out_suffix) {
+    m_out_suffix = out_suffix;
+  }
 
 
 
@@ -87,7 +91,7 @@ public:
 
   std::string m_select_algorithm = "";
   std::string m_select_channel_map = "";
-
+  std::string m_out_suffix = "";
 
   unsigned int m_total_hits = 0;
   unsigned int m_total_hits_trigger_primitive = 0;

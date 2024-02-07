@@ -101,6 +101,7 @@ main(int argc, char** argv)
     emulator->set_tpg_threshold(tpg_threshold);
     emulator->set_CPU_affinity(core_number);
     emulator->initialize();
+    emulator->set_out_suffix(out_suffix);
 
 
     // Setup the rate limiter for WIBEth frames
