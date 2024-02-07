@@ -31,7 +31,7 @@ parser.add_argument('-n', '--n-tps',                type=int,    default=1,     
 parser.add_argument('-t', '--ticks-limit',          type=int,    default=3,           help='closeness in ticks to group TPs')
 parser.add_argument('-c', '--channel-limit',        type=int,    default=1,           help='closeness in channels to group TPs')
 parser.add_argument('-m', '--min-tps',              type=int,    default=3,           help='minimum number of TPs to create a group and then an image')
-parser.add_argument('--which-detector',             type=str,    default="APA",       help='"APA", "CRP" or "50L"')
+parser.add_argument('--channel-map',                type=str,    default="APA",       help='"APA", "CRP" or "50L"')
 parser.add_argument('--save-groups',                action='store_true',              help='write the groups to a textfile')
 parser.add_argument('--show',                       action='store_true',              help='show the image')
 parser.add_argument('--fixed-size',                 action='store_true',              help='make the image size fixed')
@@ -49,7 +49,7 @@ n_tps                   = args.n_tps
 ticks_limit             = args.ticks_limit
 channel_limit           = args.channel_limit
 min_tps                 = args.min_tps
-which_detector          = args.which_detector
+channel_map             = args.channel_map
 save_groups             = args.save_groups
 fixed_size              = args.fixed_size
 width                   = args.img_width
@@ -67,7 +67,7 @@ print(" - Number of TPs: " + str(n_tps))
 print(" - Ticks limit: " + str(ticks_limit))
 print(" - Channel limit: " + str(channel_limit))
 print(" - Minimum number of TPs to create a group: " + str(min_tps))
-print(" - Which detector: " + str(which_detector))
+print(" - Channel Map: " + str(channel_map))
 print(" - Save groups: " + str(save_groups))
 print(" - Show image: " + str(show))
 print(" - Fixed size: " + str(fixed_size))
@@ -88,9 +88,9 @@ if verbose:
     print(" ")
 
 # create channel map to distinguish induction and collection
-channel_map = create_channel_map_array(which_detector=which_detector)
+my_channel_map = create_channel_map_array(which_channel_map=channel_map)
 
-groups = make_groups(all_TPs, channel_map, 
+groups = make_groups(all_TPs, my_channel_map, 
                      ticks_limit=ticks_limit, 
                      channel_limit=channel_limit, 
                      min_tps_to_group=min_tps)
@@ -98,8 +98,8 @@ groups = make_groups(all_TPs, channel_map,
 print("Number of groups: ", len(groups))
 
 # Check how many views (U, V, X) are in this sample
-total_channels = channel_map.shape[0]
-n_views = np.unique(channel_map[all_TPs['channel'] % total_channels, 1]).shape[0]
+total_channels = my_channel_map.shape[0]
+n_views = np.unique(my_channel_map[all_TPs['channel'] % total_channels, 1]).shape[0]
 print("Number of different views in these groups: ", n_views)
 print (" ")
 
@@ -110,7 +110,7 @@ if not os.path.exists(output_path):
 
 for i, group in enumerate(groups):
     save_image(group, 
-               channel_map, 
+               my_channel_map, 
                output_path=output_path, 
                output_name= "track" + str(i),
                min_tps_to_create_img=min_tps, 

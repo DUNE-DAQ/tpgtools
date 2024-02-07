@@ -98,7 +98,7 @@ python plot_tp_properties.py -f INPUT_TPSTREAM.hdf5 INPUT_TPS.txt -n 1000 -e my/
 #### `create_images.py` 
 Script to create images from TP groups, ie tracks or clusters of tracks. 
 It accepts one input file (hdf5 or text) and will produce images with increasing numbering in the output directory (default is `./`).
-Default detector is "APA", but it can be changed with the flag `--detector` to "CRP" or "50L".
+Default detector is "APA", but it can be changed with the flag `--channel-map` to "CRP" or "50L".
 The images are by default `png`, named `<view>_track<number>.png`, e. g. `u_track12.png`.
 The groups can be saved to a text file to take a look at them in a readable format, with the flag `--save-groups`.
 
