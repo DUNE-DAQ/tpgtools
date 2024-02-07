@@ -1,6 +1,6 @@
 """
- * @file group_maker.py
- * @brief Reads takes tps array and makes groups.
+ * @file cluster_maker.py
+ * @brief Reads takes tps array and makes clusters.
  *
  * This is part of the DUNE DAQ Application Framework, copyright 2024.
  * Licensing/copyright details are in the COPYING file that you should have
@@ -16,35 +16,35 @@ from utils import save_tps_array, create_channel_map_array
 
 # import detchannelmaps
 
-# This function creates the groups basing on channel and time proximity
-def make_groups(all_tps, channel_map, ticks_limit=3, channel_limit=1, min_tps_to_group=2, group_induction_view=False):
+# This function creates the clusters basing on channel and time proximity
+def make_clusters(all_tps, channel_map, ticks_limit=3, channel_limit=1, min_tps_to_cluster=2, cluster_induction_view=False):
     '''
     :param all_tps: all trigger primitives in the event
     :param channel_map: channel map
     :param ticks_limit: maximum time window to consider, in ticks
-    :param channel_limit: maximum channel distance to consider in the same group
-    :param min_tps_to_group: minimum number of hits to consider to form a group
-    :return: list of groups
+    :param channel_limit: maximum channel distance to consider in the same cluster
+    :param min_tps_to_cluster: minimum number of hits to consider to form a cluster
+    :return: list of clusters
     '''
-    # If I have tps from different planes, grouping only basing on time.
+    # If I have tps from different planes, clustering only basing on time.
     # To avoid this, you can remove all the tps from different planes from the all_tps array
     total_channels = channel_map.shape[0] # 2560 for APA, 3072 for CRP, 128 for 50L
     if np.unique(channel_map[all_tps["channel"] % total_channels, 1]).shape[0] != 1:
-        if group_induction_view == False:
+        if cluster_induction_view == False:
             # exclude all induction TPs from the all_tps array
             all_tps = all_tps[np.where(channel_map[all_tps["channel"] % total_channels, 1] != 2)]            
         else:
-            print('Warning: induction plane included in the list of TPs. Grouping only by time.')
-            return group_maker_only_by_time(all_tps, channel_map, ticks_limit=ticks_limit, channel_limit=channel_limit, min_tps_to_group=min_tps_to_group)
+            print('Warning: induction plane included in the list of TPs. clustering only by time.')
+            return cluster_maker_only_by_time(all_tps, channel_map, ticks_limit=ticks_limit, channel_limit=channel_limit, min_tps_to_cluster=min_tps_to_cluster)
 
-    # When only collection plane is present, we can group by time and channel proximity
-    groups = []
+    # When only collection plane is present, we can cluster by time and channel proximity
+    clusters = []
     buffer = []
-    # Loop over the TPs and create groups.
+    # Loop over the TPs and create clusters.
     # The idea is that TPs are iterated over the time and are place in a buffer.
     # If there is a TP close in terms of channel, it is added to the buffer.
     # When there are no more close TPs in terms of time (valid since they should come ordered), 
-    # the group is added to the list of groups or discarded if there are not enough TPs in it.
+    # the cluster is added to the list of clusters or discarded if there are not enough TPs in it.
     for tp in all_tps:
         if len(buffer)==0:
             buffer.append([tp])
@@ -70,30 +70,30 @@ def make_groups(all_tps, channel_map, ticks_limit=3, channel_limit=1, min_tps_to
                         buffer.append(candidate)
                         idx += 1
                 else:
-                    if len(candidate) >= min_tps_to_group:
-                        groups.append(np.array(candidate))
+                    if len(candidate) >= min_tps_to_cluster:
+                        clusters.append(np.array(candidate))
             if not appended:
                 buffer.append([tp])
     if len(buffer) > 0:
         for candidate in buffer:
-            if len(candidate) >= min_tps_to_group:
-                groups.append(np.array(candidate))
+            if len(candidate) >= min_tps_to_cluster:
+                clusters.append(np.array(candidate))
 
-    return groups
+    return clusters
 
-# This function creates groups basing only on time proximity, used when including induction view
-def make_groups_only_by_time(all_tps, channel_map, ticks_limit=5, min_tps_to_group=4):
-    groups = []
-    current_group = [all_tps[0]]
+# This function creates clusters basing only on time proximity, used when including induction view
+def make_clusters_only_by_time(all_tps, channel_map, ticks_limit=5, min_tps_to_cluster=4):
+    clusters = []
+    current_cluster = [all_tps[0]]
     # print names of dict
     print ("all_tps.dtype.names")
     print(all_tps.dtype.names)
     for tp in all_tps[1:]:
-        if tp["time_start"] - np.max(current_group["time_start"]+current_group["time_over_threshold"]) <= ticks_limit:
-            current_group = np.append(current_group, tp)
+        if tp["time_start"] - np.max(current_cluster["time_start"]+current_cluster["time_over_threshold"]) <= ticks_limit:
+            current_cluster = np.append(current_cluster, tp)
         else:
-            if len(current_group) >= min_tps_to_group:
-                groups.append(current_group)
-            current_group = [tp]
+            if len(current_cluster) >= min_tps_to_cluster:
+                clusters.append(current_cluster)
+            current_cluster = [tp]
  
-    return groups
+    return clusters

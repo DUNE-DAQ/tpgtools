@@ -65,11 +65,11 @@ Plotting functions make use of `matplotlib`; to know how to load it in your envi
 They have several parameters to customize the plots, in particular in some cases the range is handled through the quantile of the distribution. 
 Default value is 1, but to get rid of outliers it can be set to 0.9, for example.
 
-* `group_maker.py` is a library to group TPs basing on channel and/or time. 
-Each group should then be a track, if the conditions are set to be strict enough (deafult is channel limit 1 and time limit 3 ticks).
+* `cluster_maker.py` is a library to cluster TPs basing on channel and/or time. 
+Each cluster should then be a track, if the conditions are set to be strict enough (deafult is channel limit 1 and time limit 3 ticks).
 
 * `image_creator.py` contains functions to create images from TPs, that will be 2D histograms (channel vs time). 
-Also in this case, many parameters can be set to customize the images, for example to choose if to fix the size or if it will depend on the group case by case.
+Also in this case, many parameters can be set to customize the images, for example to choose if to fix the size or if it will depend on the cluster case by case.
 
 
 ### Python scripts
@@ -96,11 +96,11 @@ python plot_tp_properties.py -f INPUT_TPSTREAM.hdf5 INPUT_TPS.txt -n 1000 -e my/
 
 
 #### `create_images.py` 
-Script to create images from TP groups, ie tracks or clusters of tracks. 
+Script to create images from TP clusters, ie one or more tracks. 
 It accepts one input file (hdf5 or text) and will produce images with increasing numbering in the output directory (default is `./`).
 Default detector is "APA", but it can be changed with the flag `--channel-map` to "CRP" or "50L".
 The images are by default `png`, named `<view>_track<number>.png`, e. g. `u_track12.png`.
-The groups can be saved to a text file to take a look at them in a readable format, with the flag `--save-groups`.
+The clusters can be saved to a text file to take a look at them in a readable format, with the flag `--save-clusters`.
 
 You can see full usage with `--help`, here an example:
 ```sh

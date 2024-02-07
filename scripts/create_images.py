@@ -20,7 +20,7 @@ sys.path.append('../python/')
 from utils import save_tps_array, create_channel_map_array
 from hdf5_converter import convert_tpstream_to_numpy 
 from image_creator import save_image, show_image
-from group_maker import make_groups
+from cluster_maker import make_clusters
 
 
 # parser for the arguments
@@ -28,11 +28,11 @@ parser = argparse.ArgumentParser(description='Tranforms Trigger Primitives to im
 parser.add_argument('-i', '--input-file',           type=str,                         help='Input file name')
 parser.add_argument('-o', '--output-path',          type=str,    default='./',        help='path to save the image')
 parser.add_argument('-n', '--n-tps',                type=int,    default=1,           help='number of tps to process')
-parser.add_argument('-t', '--ticks-limit',          type=int,    default=3,           help='closeness in ticks to group TPs')
-parser.add_argument('-c', '--channel-limit',        type=int,    default=1,           help='closeness in channels to group TPs')
-parser.add_argument('-m', '--min-tps',              type=int,    default=3,           help='minimum number of TPs to create a group and then an image')
+parser.add_argument('-t', '--ticks-limit',          type=int,    default=3,           help='closeness in ticks to cluster TPs')
+parser.add_argument('-c', '--channel-limit',        type=int,    default=1,           help='closeness in channels to cluster TPs')
+parser.add_argument('-m', '--min-tps',              type=int,    default=3,           help='minimum number of TPs to create a cluster and then an image')
 parser.add_argument('--channel-map',                type=str,    default="APA",       help='"APA", "CRP" or "50L"')
-parser.add_argument('--save-groups',                action='store_true',              help='write the groups to a textfile')
+parser.add_argument('--save-clusters',                action='store_true',              help='write the clusters to a textfile')
 parser.add_argument('--show',                       action='store_true',              help='show the image')
 parser.add_argument('--fixed-size',                 action='store_true',              help='make the image size fixed')
 parser.add_argument('--img-width',                  type=int,    default=200,          help='width of the image, if fixed size')
@@ -50,7 +50,7 @@ ticks_limit             = args.ticks_limit
 channel_limit           = args.channel_limit
 min_tps                 = args.min_tps
 channel_map             = args.channel_map
-save_groups             = args.save_groups
+save_clusters             = args.save_clusters
 fixed_size              = args.fixed_size
 width                   = args.img_width
 height                  = args.img_height
@@ -66,9 +66,9 @@ print(" - Output path: " + str(output_path))
 print(" - Number of TPs: " + str(n_tps))
 print(" - Ticks limit: " + str(ticks_limit))
 print(" - Channel limit: " + str(channel_limit))
-print(" - Minimum number of TPs to create a group: " + str(min_tps))
+print(" - Minimum number of TPs to create a cluster: " + str(min_tps))
 print(" - Channel Map: " + str(channel_map))
-print(" - Save groups: " + str(save_groups))
+print(" - Save clusters: " + str(save_clusters))
 print(" - Show image: " + str(show))
 print(" - Fixed size: " + str(fixed_size))
 print(" - Image width: " + str(width))
@@ -90,17 +90,17 @@ if verbose:
 # create channel map to distinguish induction and collection
 my_channel_map = create_channel_map_array(which_channel_map=channel_map)
 
-groups = make_groups(all_TPs, my_channel_map, 
+clusters = make_clusters(all_TPs, my_channel_map, 
                      ticks_limit=ticks_limit, 
                      channel_limit=channel_limit, 
-                     min_tps_to_group=min_tps)
+                     min_tps_to_cluster=min_tps)
 
-print("Number of groups: ", len(groups))
+print("Number of clusters: ", len(clusters))
 
 # Check how many views (U, V, X) are in this sample
 total_channels = my_channel_map.shape[0]
 n_views = np.unique(my_channel_map[all_TPs['channel'] % total_channels, 1]).shape[0]
-print("Number of different views in these groups: ", n_views)
+print("Number of different views in these clusters: ", n_views)
 print (" ")
 
 # Prepare the output folder
@@ -108,8 +108,8 @@ if not os.path.exists(output_path):
     os.makedirs(output_path)
     print ("Created output folder: " + output_path)
 
-for i, group in enumerate(groups):
-    save_image(group, 
+for i, cluster in enumerate(clusters):
+    save_image(cluster, 
                my_channel_map, 
                output_path=output_path, 
                output_name= "track" + str(i),
@@ -124,15 +124,15 @@ for i, group in enumerate(groups):
 print("Done!")
 print(" ")
     
-if save_groups:
-    output_groupsFile = os.path.basename(input_file)
-    output_groupsFile = os.path.splitext(output_groupsFile)[0]
-    output_groupsFile += '_groups.txt'    
-    print("Writing groups to text file...")
-    with open(output_groupsFile, 'w') as f:
-        for i, group in enumerate(groups):
-            f.write('Group ' + str(i) + ':\n')
-            for tp in group:
+if save_clusters:
+    output_clustersFile = os.path.basename(input_file)
+    output_clustersFile = os.path.splitext(output_clustersFile)[0]
+    output_clustersFile += '_clusters.txt'    
+    print("Writing clusters to text file...")
+    with open(output_clustersFile, 'w') as f:
+        for i, cluster in enumerate(clusters):
+            f.write('cluster ' + str(i) + ':\n')
+            for tp in cluster:
                 # f.write(str(this_tp) + '\n')
                 this_tp = np.array([int(tp["time_start"]), 
                                     int(tp["time_over_threshold"]),

@@ -1,6 +1,6 @@
 """
- * @file group_maker.py
- * @brief Reads takes tps array and makes groups.
+ * @file utils.py
+ * @brief Misc python functions that don't fall under any other library.
  *
  * This is part of the DUNE DAQ Application Framework, copyright 2024.
  * Licensing/copyright details are in the COPYING file that you should have
