@@ -9,7 +9,7 @@
 #include "tpgtools/TPGEmulator.hpp"
 
 #include "fdreadoutlibs/wibeth/tpg/ProcessAVX2.hpp"
-#include "fdreadoutlibs/wibeth/tpg/ProcessRSAVX2.hpp"
+#include "fdreadoutlibs/wibeth/tpg/ProcessAbsRSAVX2.hpp"
 #include "fdreadoutlibs/wibeth/tpg/ProcessNaive.hpp"
 #include "fdreadoutlibs/wibeth/tpg/ProcessNaiveRS.hpp"
 
