@@ -37,6 +37,9 @@ main(int argc, char** argv)
     std::string select_implementation = "AVX";
     app.add_option("-i,--implementation", select_implementation, "TPG implementation (AVX / NAIVE). Default: AVX");
 
+    std::string select_channel_map = "None";
+    app.add_option("-m,--channel-map", select_channel_map, "Select a valid channel map: None, VDColdboxChannelMap, ProtoDUNESP1ChannelMap, PD2HDChannelMap, HDColdboxChannelMap, FiftyLChannelMap");
+
     int duration_test = 120; 
     app.add_option("-d,--duration-test", duration_test, "Duration (in seconds) to run the test. Default value is 120.");
 
@@ -52,10 +55,19 @@ main(int argc, char** argv)
     bool save_trigprim = false;
     app.add_flag("--save-trigprim", save_trigprim, "Save trigger primitive data");
 
+    // Additional options for validation 
+    bool repeat_timer = true;
+    app.add_option("-r, --repeat_timer", repeat_timer, "Repeat frame processing until certain time elapsed (true/false). Default: true.");
+
+    std::string out_suffix = "";
+    app.add_option("-s ,--out_suffix", out_suffix, "Append string to output hit file name (e.g. __1). Default: empty string).");
+
+    int num_frames_to_read = -1;
+    app.add_option("-n,--num-frames-to-read", num_frames_to_read, "Number of frames to read. Default: -1 (select all frames).");
+
+
 
     CLI11_PARSE(app, argc, argv);
-
-
 
     
     // =================================================================
@@ -69,10 +81,12 @@ main(int argc, char** argv)
 
     m_source_buffer->read(file_path_input);
     auto& source = m_source_buffer->get(); 
-    const int total_num_frames = m_source_buffer->num_elements(); // file_ size/chunk_size = 180 
+    int total_num_frames = m_source_buffer->num_elements(); // file_ size/chunk_size = 180 
 
     fmt::print("Number of DUNE WIBEth frames in the input file: {} \n", total_num_frames);
-    
+    fmt::print("Number of DUNE WIBEth frames to read: {} \n", num_frames_to_read);
+    total_num_frames = num_frames_to_read; 
+
     // =================================================================
     //                       Setup the SWTPG
     // =================================================================
@@ -80,9 +94,9 @@ main(int argc, char** argv)
     // Create instance of the TPG emulator implementation    
     std::unique_ptr<tpg_emulator_base> emulator;
     if (select_implementation == "AVX") {
-      emulator = std::make_unique<tpg_emulator_avx>(save_adc_data, save_trigprim, false, select_algorithm, "");
+      emulator = std::make_unique<tpg_emulator_avx>(save_adc_data, save_trigprim, false, select_algorithm, select_channel_map);
     } else if (select_implementation == "NAIVE") {
-      emulator = std::make_unique<tpg_emulator_naive>(save_adc_data, save_trigprim, false, select_algorithm, "");
+      emulator = std::make_unique<tpg_emulator_naive>(save_adc_data, save_trigprim, false, select_algorithm, select_channel_map);
     } else {
       throw tpgtools::InvalidImplementation(ERS_HERE, select_implementation);  
     }
@@ -90,6 +104,7 @@ main(int argc, char** argv)
     emulator->set_tpg_threshold(tpg_threshold);
     emulator->set_CPU_affinity(core_number);
     emulator->initialize();
+    emulator->set_out_suffix(out_suffix);
 
 
     // Setup the rate limiter for WIBEth frames
@@ -115,6 +130,11 @@ main(int argc, char** argv)
 
       ++wibeth_frame_index;
 
+      if (!repeat_timer) {
+        if (wibeth_frame_index == total_num_frames) {
+          continue;
+        }
+      }
 
       // If end of the file is reached, restart the index counter
       if (wibeth_frame_index == total_num_frames) {

@@ -20,35 +20,48 @@
 // =================================================================
 
 void tpg_emulator_avx::extract_hits(uint16_t* output_location, uint64_t timestamp,
-                      bool save_trigprim) {
+                      bool save_trigprim, std::string out_suffix="") {
 
-  constexpr int clocksPerTPCTick = 32;
-  uint16_t chan[16], hit_end[16], hit_charge[16], hit_tover[16]; 
+  //constexpr int clocksPerTPCTick = 32;
+  //uint16_t chan[16], hit_end[16], hit_charge[16], hit_tover[16];
+  constexpr int clocksPerTPCTick = dunedaq::fdreadoutlibs::types::DUNEWIBEthTypeAdapter::samples_tick_difference;
+  const constexpr std::size_t nreg = swtpg_wibeth::SAMPLES_PER_REGISTER;
+  uint16_t chan[nreg], left[nreg], hit_end[nreg], hit_peak_adc[nreg], hit_charge[nreg], hit_tover[nreg], hit_peak_time[nreg];
 
   while (*output_location != swtpg_wibeth::MAGIC) {
-    for (int i = 0; i < 16; ++i) {
-      chan[i] = *output_location++; 
+    for (std::size_t i = 0; i < nreg; ++i) {
+      chan[i] = *output_location++;
     }
-    for (int i = 0; i < 16; ++i) {
-      hit_end[i] = *output_location++; 
+    for (std::size_t i = 0; i < nreg; ++i) {
+      hit_end[i] = *output_location++;
     }
-    for (int i = 0; i < 16; ++i) {
+    for (std::size_t i = 0; i < nreg; ++i) {
       hit_charge[i] = *output_location++;
     }
-    for (int i = 0; i < 16; ++i) {        
-      hit_tover[i] = *output_location++; 
-    }  
+    for (std::size_t i = 0; i < nreg; ++i) {
+      hit_tover[i] = *output_location++;
+    }
+    for (std::size_t i = 0; i < nreg; ++i) {
+      hit_peak_adc[i] = *output_location++;
+    }
+    for (std::size_t i = 0; i < nreg; ++i) {
+      hit_peak_time[i] = *output_location++;
+    }
+    for (std::size_t i = 0; i < nreg; ++i) {
+      left[i] = *output_location++;
+    }    
     
     // Now that we have all the register values in local
     // variables, loop over the register index (ie, channel) and
     // find the channels which actually had a hit, as indicated by
     // nonzero value of hit_charge
-    for (int i = 0; i < 16; ++i) {
-      if (hit_charge[i] && chan[i] != swtpg_wibeth::MAGIC) {
+    for (std::size_t i = 0; i < nreg; ++i) {
+      if (hit_charge[i] && left[i] == std::numeric_limits<std::uint16_t>::max()
+          && chan[i] != swtpg_wibeth::MAGIC) {
 
-        uint64_t tp_t_begin =                                                        // NOLINT(build/unsigned)
-          timestamp + clocksPerTPCTick * (int64_t(hit_end[i]) - int64_t(hit_tover[i]));       // NOLINT(build/unsigned)
-        uint64_t tp_t_end = timestamp + clocksPerTPCTick * int64_t(hit_end[i]);      // NOLINT(build/unsigned)
+        uint64_t tp_t_begin = timestamp + clocksPerTPCTick * ((int64_t)hit_end[i] - (int64_t)hit_tover[i]); // NOLINT(build/unsigned)
+        uint64_t tp_t_peak  = tp_t_begin + clocksPerTPCTick * hit_peak_time[i]; // NOLINT(build/unsigned)
+
         // May be needed for TPSet:
         // uint64_t tspan = clocksPerTPCTick * hit_tover[i]; // is/will be this needed?
         //
@@ -59,17 +72,17 @@ void tpg_emulator_avx::extract_hits(uint16_t* output_location, uint64_t timestam
         //TLOG_DEBUG(0) << "Hit: " << tp_t_begin << " " << offline_channel;
         triggeralgs::TriggerPrimitive trigprim;
         trigprim.time_start = tp_t_begin;
-        trigprim.time_peak = (tp_t_begin + tp_t_end) / 2;
-        trigprim.time_over_threshold = hit_tover[i] * clocksPerTPCTick;      
-        trigprim.channel = m_register_channels[chan[i]]; //offline channel map
+        trigprim.time_peak = tp_t_peak;
+        trigprim.time_over_threshold = uint64_t((hit_tover[i] - 1) * clocksPerTPCTick);
+        trigprim.channel = m_register_channels[chan[i]];
         trigprim.adc_integral = hit_charge[i];
-        trigprim.adc_peak = hit_charge[i] / 20;
-        trigprim.detid = 666;          
+        trigprim.adc_peak = hit_peak_adc[i];
+        trigprim.detid = 666;
         trigprim.type = triggeralgs::TriggerPrimitive::Type::kTPC;
         trigprim.algorithm = triggeralgs::TriggerPrimitive::Algorithm::kTPCDefault;
         trigprim.version = 1;
         if (save_trigprim){
-          save_TP_object(trigprim, "AVX");
+          save_TP_object(trigprim, "AVX", out_suffix);
         }          
 
         ++m_total_hits;
@@ -111,7 +124,7 @@ void tpg_emulator_avx::extract_hits(uint16_t* output_location, uint64_t timestam
        
 
   // Parse the output from the TPG    
-  extract_hits(m_frame_handler.m_tpg_processing_info->output, timestamp, m_save_trigprim);
+  extract_hits(m_frame_handler.m_tpg_processing_info->output, timestamp, m_save_trigprim, m_out_suffix);
 
  }
 
@@ -143,40 +156,47 @@ void tpg_emulator_avx::extract_hits(uint16_t* output_location, uint64_t timestam
 
 
 void tpg_emulator_naive::extract_hits(uint16_t* output_location, uint64_t timestamp,
-                      bool save_trigprim) {
+                      bool save_trigprim, std::string out_suffix="") {
 
-    constexpr int clocksPerTPCTick = 32;
-    uint16_t chan, hit_end, hit_charge, hit_tover; 
+
+    constexpr int clocksPerTPCTick = dunedaq::fdreadoutlibs::types::DUNEWIBEthTypeAdapter::samples_tick_difference;
+    const constexpr std::size_t nreg = swtpg_wibeth::SAMPLES_PER_REGISTER;
+    uint16_t chan, hit_end, hit_peak_adc, hit_charge, hit_tover, hit_peak_time;
+
+    std::array<int, 16> indices{0, 1, 2, 3, 4, 5, 6, 7, 15, 8, 9, 10, 11, 12, 13, 14};
 
     size_t i = 0;
     while (*output_location != swtpg_wibeth::MAGIC) {
-      chan   = *output_location++;
-      hit_end    = *output_location++;
-      hit_charge  = *output_location++;
-      hit_tover     = *output_location++;
-    
+      chan            = *output_location++;
+      hit_end         = *output_location++;
+      hit_charge      = *output_location++;
+      hit_tover       = *output_location++;
+      hit_peak_adc    = *output_location++;
+      hit_peak_time   = *output_location++;
+
       i += 1;
-      uint64_t tp_t_begin =                                                        
-        timestamp + clocksPerTPCTick * (int64_t(hit_end ) - hit_tover );       
-      uint64_t tp_t_end = timestamp + clocksPerTPCTick * int64_t(hit_end );      
+      chan = nreg*(chan/nreg)+indices[chan%nreg];
+
+      uint64_t tp_t_begin = timestamp + clocksPerTPCTick * ((int64_t)hit_end - (int64_t)hit_tover); // NOLINT(build/unsigned)
+      uint64_t tp_t_peak  = tp_t_begin + clocksPerTPCTick * hit_peak_time; // NOLINT(build/unsigned)
 
       triggeralgs::TriggerPrimitive trigprim;
       trigprim.time_start = tp_t_begin;
-      trigprim.time_peak = (tp_t_begin + tp_t_end) / 2;
+      trigprim.time_peak = tp_t_peak;
 
-      trigprim.time_over_threshold = hit_tover  * clocksPerTPCTick;
+      trigprim.time_over_threshold = uint64_t((hit_tover - 1) * clocksPerTPCTick);
 
 
       trigprim.channel = m_register_channels[chan]; //offline channel map;
       trigprim.adc_integral = hit_charge ;
-      trigprim.adc_peak = hit_charge  / 20;
+      trigprim.adc_peak = hit_peak_adc;
       trigprim.detid = 666; 
       trigprim.type = triggeralgs::TriggerPrimitive::Type::kTPC;
       trigprim.algorithm = triggeralgs::TriggerPrimitive::Algorithm::kTPCDefault;
       trigprim.version = 1;
     
       if (save_trigprim) {
-        save_TP_object(trigprim, "NAIVE");
+        save_TP_object(trigprim, "NAIVE", out_suffix);
       }
       ++m_total_hits;
 
@@ -216,7 +236,7 @@ void tpg_emulator_naive::execute_tpg(const dunedaq::fdreadoutlibs::types::DUNEWI
        
 
   // Parse the output from the TPG    
-  extract_hits(m_frame_handler.m_tpg_processing_info->output, timestamp, m_save_trigprim);
+  extract_hits(m_frame_handler.m_tpg_processing_info->output, timestamp, m_save_trigprim, m_out_suffix);
 
 }
 
