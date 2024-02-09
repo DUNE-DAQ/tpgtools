@@ -33,9 +33,6 @@ void tpg_emulator_avx::extract_hits(uint16_t* output_location, uint64_t timestam
       chan[i] = *output_location++;
     }
     for (std::size_t i = 0; i < nreg; ++i) {
-      left[i] = *output_location++;
-    }
-    for (std::size_t i = 0; i < nreg; ++i) {
       hit_end[i] = *output_location++;
     }
     for (std::size_t i = 0; i < nreg; ++i) {
@@ -50,8 +47,9 @@ void tpg_emulator_avx::extract_hits(uint16_t* output_location, uint64_t timestam
     for (std::size_t i = 0; i < nreg; ++i) {
       hit_peak_time[i] = *output_location++;
     }
-
-    
+    for (std::size_t i = 0; i < nreg; ++i) {
+      left[i] = *output_location++;
+    }    
     
     // Now that we have all the register values in local
     // variables, loop over the register index (ie, channel) and
@@ -76,7 +74,7 @@ void tpg_emulator_avx::extract_hits(uint16_t* output_location, uint64_t timestam
         trigprim.time_start = tp_t_begin;
         trigprim.time_peak = tp_t_peak;
         trigprim.time_over_threshold = uint64_t((hit_tover[i] - 1) * clocksPerTPCTick);
-        trigprim.channel = chan[i];
+        trigprim.channel = m_register_channels[chan[i]];
         trigprim.adc_integral = hit_charge[i];
         trigprim.adc_peak = hit_peak_adc[i];
         trigprim.detid = 666;

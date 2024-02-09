@@ -37,6 +37,9 @@ main(int argc, char** argv)
     std::string select_implementation = "AVX";
     app.add_option("-i,--implementation", select_implementation, "TPG implementation (AVX / NAIVE). Default: AVX");
 
+    std::string select_channel_map = "None";
+    app.add_option("-m,--channel-map", select_channel_map, "Select a valid channel map: None, VDColdboxChannelMap, ProtoDUNESP1ChannelMap, PD2HDChannelMap, HDColdboxChannelMap, FiftyLChannelMap");
+
     int duration_test = 120; 
     app.add_option("-d,--duration-test", duration_test, "Duration (in seconds) to run the test. Default value is 120.");
 
@@ -91,9 +94,9 @@ main(int argc, char** argv)
     // Create instance of the TPG emulator implementation    
     std::unique_ptr<tpg_emulator_base> emulator;
     if (select_implementation == "AVX") {
-      emulator = std::make_unique<tpg_emulator_avx>(save_adc_data, save_trigprim, false, select_algorithm, "");
+      emulator = std::make_unique<tpg_emulator_avx>(save_adc_data, save_trigprim, false, select_algorithm, select_channel_map);
     } else if (select_implementation == "NAIVE") {
-      emulator = std::make_unique<tpg_emulator_naive>(save_adc_data, save_trigprim, false, select_algorithm, "");
+      emulator = std::make_unique<tpg_emulator_naive>(save_adc_data, save_trigprim, false, select_algorithm, select_channel_map);
     } else {
       throw tpgtools::InvalidImplementation(ERS_HERE, select_implementation);  
     }
