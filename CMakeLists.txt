@@ -66,8 +66,8 @@ daq_add_application(wibeth_binary_frame_modifier wibeth_binary_frame_modifier.cx
 daq_add_application(wib2_binary_frame_reader wib2_binary_frame_reader.cxx LINK_LIBRARIES ${PROJECT_NAME} CLI11::CLI11)
 daq_add_application(wibeth_binary_frame_reader wibeth_binary_frame_reader.cxx LINK_LIBRARIES ${PROJECT_NAME} CLI11::CLI11)
 
-daq_add_application(streamed_TPs_to_text streamed_TPs_to_text.cxx LINK_LIBRARIES  ${PROJECT_NAME} CLI11::CLI11 trigger)
-daq_add_application(check_fragment_TPs check_fragment_TPs.cxx LINK_LIBRARIES  ${PROJECT_NAME} CLI11::CLI11 trigger )
+daq_add_application(streamed_TPs_to_text streamed_TPs_to_text.cxx LINK_LIBRARIES  ${PROJECT_NAME} CLI11::CLI11)
+daq_add_application(check_fragment_TPs check_fragment_TPs.cxx LINK_LIBRARIES  ${PROJECT_NAME} CLI11::CLI11)
 
 
 ##############################################################################
