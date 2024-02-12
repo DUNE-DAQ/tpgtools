@@ -39,7 +39,7 @@ public:
     m_save_trigprim = save_trigprim;
     m_parse_trigger_primitive = parse_trigger_primitive;
     m_select_algorithm = select_algorithm;
-    m_select_channel_map = select_channel_map;
+    m_select_channel_map = select_channel_map;    
 
   }
   tpg_emulator_base(tpg_emulator_base const&) = delete;
@@ -96,6 +96,9 @@ public:
   unsigned int m_total_hits = 0;
   unsigned int m_total_hits_trigger_primitive = 0;
   bool m_first_hit = true;
+
+  // Algorithm used to form a trigger primitive
+  dunedaq::trgdataformats::TriggerPrimitive::Algorithm m_tp_algo = dunedaq::trgdataformats::TriggerPrimitive::Algorithm::kUnknown; 
 
 
   int m_tpg_threshold = 500; //default value 
