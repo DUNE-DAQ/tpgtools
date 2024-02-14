@@ -74,7 +74,7 @@ void tpg_emulator_avx::extract_hits(uint16_t* output_location, uint64_t timestam
         trigprim.time_start = tp_t_begin;
         trigprim.time_peak = tp_t_peak;
         trigprim.time_over_threshold = uint64_t((hit_tover[i] - 1) * clocksPerTPCTick);
-        trigprim.channel = m_register_channels[chan[i]];
+        trigprim.channel = m_register_channel_map.channel[chan[i]]; //m_register_channels[chan[i]];
         trigprim.adc_integral = hit_charge[i];
         trigprim.adc_peak = hit_peak_adc[i];
         trigprim.detid = 666;
@@ -187,7 +187,7 @@ void tpg_emulator_naive::extract_hits(uint16_t* output_location, uint64_t timest
       trigprim.time_over_threshold = uint64_t((hit_tover - 1) * clocksPerTPCTick);
 
 
-      trigprim.channel = m_register_channels[chan]; //offline channel map;
+      trigprim.channel = m_register_channel_map.channel[chan]; //m_register_channels[chan]; //offline channel map;
       trigprim.adc_integral = hit_charge ;
       trigprim.adc_peak = hit_peak_adc;
       trigprim.detid = 666; 
