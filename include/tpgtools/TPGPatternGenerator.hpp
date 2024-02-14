@@ -120,6 +120,7 @@ struct PattgenInfo
                 , int input_ch_
 		, int tpg_threshold_
                 , int iframe_
+		, bool overwrite_wibeth_header_
 		, bool verbose_
                 )
   : output_frame(output_frame_)
@@ -131,6 +132,7 @@ struct PattgenInfo
   , input_ch(input_ch_)
   , tpg_threshold(tpg_threshold_)
   , iframe(iframe_)
+  , overwrite_wibeth_header(overwrite_wibeth_header_)
   , verbose(verbose_)
   {}
   dunedaq::fddetdataformats::WIBEthFrame* output_frame;
@@ -142,6 +144,7 @@ struct PattgenInfo
   int input_ch;
   int tpg_threshold;
   int iframe;
+  bool overwrite_wibeth_header;
   bool verbose;
 };
 class PattgenHandler {
@@ -160,6 +163,7 @@ class PattgenHandler {
                     , 0
 		    , 0
                     , 0
+		    , false
 		    , false
                     );
   }
@@ -280,6 +284,29 @@ execute_tpgpg(PattgenInfo& info, PattgenAlgs& pa)
     }
     info.output_frame->set_timestamp(expected_timestamp);
   }
+  // for offline channel map, avoid error e.g. Invalid stream number 176
+  if (info.overwrite_wibeth_header) {
+    if (info.verbose) {
+       TLOG() << "CRATE " << info.output_frame->daq_header.crate_id; 
+       TLOG() << "SLOT " << info.output_frame->daq_header.slot_id; 
+       TLOG() << "STREAM " << info.output_frame->daq_header.stream_id; 
+    }
+    //if crate number looks wrong 
+    if (info.output_frame->daq_header.crate_id != 6) {
+      if (info.verbose) TLOG() << " |______ CRATE-ID WILL BE OVERWRITTEN! OLD: " << info.output_frame->daq_header.crate_id << ", NEW: " << 6;
+      info.output_frame->daq_header.crate_id = 6;
+    }
+    //if slot number looks wrong
+    if (info.output_frame->daq_header.slot_id != 0) {
+      if (info.verbose) TLOG() << " |______ SLOT-ID WILL BE OVERWRITTEN! OLD: " << info.output_frame->daq_header.slot_id << ", NEW: " << 0;
+      info.output_frame->daq_header.slot_id = 0;
+    }
+    //if stream number looks wrong (not 0,1,2,3 or 64,65,66,67)
+    if (info.output_frame->daq_header.stream_id != 0) {
+      if (info.verbose) TLOG() << " |______ STREAM-ID WILL BE OVERWRITTEN! OLD: " << info.output_frame->daq_header.stream_id << ", NEW: " << 0;
+      info.output_frame->daq_header.stream_id = 0;
+    }
+  }
 
   pa.run_algorithm(info.pattern_name, info);
 }
@@ -288,7 +315,7 @@ execute_tpgpg(PattgenInfo& info, PattgenAlgs& pa)
 //                       PATTERN GENERATOR VALIDATION
 // =================================================================
 void hit_finder(std::vector<uint16_t>& adcs, std::vector<std::vector<int>>& out, const int& channel, 
-		const int& threshold, const uint64_t timestamp) {
+		const int& threshold) {
 
       int m_tov_min = 2;
 
@@ -362,13 +389,8 @@ void hit_finder(std::vector<uint16_t>& adcs, std::vector<std::vector<int>>& out,
           continue; // 2**14
         }
         if (end[k]-start[k] >= m_tov_min-1){
-          // start, end, peak_time, channel, sum_adc, peak_adc, hitcotninue
 	  std::vector<int> aux = {start[k], end[k], peak_times[k], channel, sums[k], peak_adcs[k], hitcontinue[k]};
           out.push_back(aux);
-
-	  uint64_t ts_tov = (end[k]-start[k])*32;
-	  uint64_t ts_start = start[k] * 32 + timestamp;
-	  uint64_t ts_peak = peak_times[k] * 32 + timestamp;
 	}
       }
 }
@@ -388,7 +410,7 @@ execute_tpgpg_validation(PattgenInfo& info)
   int16_t median = 0;
   int16_t accum = 0;
 
-  for (size_t i=0; i<info.num_frames; i++) {
+  for (int i=0; i<info.num_frames; i++) {
     TLOG() << "========== FRAME_NUM " << i;
     output_frame_pedsub = input_file_fake.frame(i);
     for (int ch=0; ch<64; ++ch) {
@@ -434,8 +456,8 @@ execute_tpgpg_validation(PattgenInfo& info)
     if (ch != info.input_ch) continue;
     std::vector<uint16_t> adcs;
     std::vector<std::vector<int>> tmp_out;
-    uint64_t timestamp;
-    for (size_t i=0; i<info.num_frames; i++) {
+    uint64_t timestamp = 0;
+    for (int i=0; i<info.num_frames; i++) {
       TLOG() << "========== FRAME_NUM " << i << " max " << std::vector<int>().max_size();
       input_frame_pedsub = input_file_pedsub.frame(i);
       if (i==0) {
@@ -446,7 +468,7 @@ execute_tpgpg_validation(PattgenInfo& info)
 	adcs.push_back(adc);
       }
     }
-    hit_finder(adcs, tmp_out, ch, info.tpg_threshold, timestamp);
+    hit_finder(adcs, tmp_out, ch, info.tpg_threshold);
     for (auto& it : tmp_out) {
       // start[k], end[k], peak_times[k], channel, sums[k], peak_adcs[k], hitcontinue[k]
       uint64_t ts_tov = (it[1]-it[0])*32;

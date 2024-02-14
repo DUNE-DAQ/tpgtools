@@ -58,6 +58,9 @@ main(int argc, char** argv)
     std::string select_pattern = "patt_golden";
     app.add_option("-p,--select-pattern", select_pattern, "Test pattern name (patt_golden, patt_pulse, patt_edge_square, patt_edge_left, patt_edge_right). Default: patt_golden.");
 
+    bool overwrite_wibeth_header = false;
+    app.add_flag("-w,--overwrite-wibeth-header", overwrite_wibeth_header, "Overwrite crate, slot, stream IDs (needed for offline channel map). Default: false.");
+
     bool verbose = false;
     app.add_flag("-v,--verbose", verbose, "Printout additional information while the application is running. Default: false.");
 
@@ -113,6 +116,7 @@ main(int argc, char** argv)
     ph.m_pattgen_info->input_ch = input_ch;
     ph.m_pattgen_info->tpg_threshold = tpg_threshold;
     ph.m_pattgen_info->out_prefix = out_prefix;
+    ph.m_pattgen_info->overwrite_wibeth_header = overwrite_wibeth_header;
     ph.m_pattgen_info->verbose = verbose;
 
     while (wibeth_frame_index < num_frames_to_read ){

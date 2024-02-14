@@ -121,10 +121,20 @@ main(int argc, char** argv)
     auto start_test = std::chrono::high_resolution_clock::now();  
 
     // Loop over the DUNEWIB Ethernet frames in the file
-    while (wibeth_frame_index < total_num_frames ){      
+    while (wibeth_frame_index < total_num_frames ){
 
       // current WIBEth frame
       auto fp = reinterpret_cast<dunedaq::fdreadoutlibs::types::DUNEWIBEthTypeAdapter*>(source.data() + wibeth_frame_index*wibeth_frame_size);
+      //auto fr = reinterpret_cast<dunedaq::fddetdataformats::WIBEthFrame*>(
+      //          static_cast<char*>((char*)source.data()) +  wibeth_frame_index*sizeof(dunedaq::fddetdataformats::WIBEthFrame));
+
+
+      //auto fr = reinterpret_cast<dunedaq::fddetdataformats::WIBEthFrame*>(&source.data()[wibeth_frame_index]);
+      //auto fr = reinterpret_cast<dunedaq::fddetdataformats::WIBEthFrame*>(fp);
+      auto fr = reinterpret_cast<dunedaq::fddetdataformats::WIBEthFrame*>((uint8_t*)fp);
+
+      emulator->register_channel_map(fr);
+      //auto fp = reinterpret_cast<dunedaq::fdreadoutlibs::types::DUNEWIBEthTypeAdapter*>(fr);
 
       emulator->execute_tpg(fp);
 
