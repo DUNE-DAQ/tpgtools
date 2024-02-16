@@ -110,10 +110,12 @@ void tpg_emulator_avx::extract_hits(uint16_t* output_location, uint64_t timestam
     m_frame_handler.m_tpg_processing_info->setState(registers_array);
     m_first_hit = false;    
     // Save ADC info
-    if (m_save_adc_data){
-      save_raw_data(registers_array, timestamp, -1, m_select_algorithm );
-    }
-    
+    if (m_save_adc_data && m_num_frames_to_save == 1) {
+      save_raw_data(registers_array, timestamp, -1, m_select_algorithm, 0, 0);
+    } 
+  }
+  if (m_save_adc_data && m_num_frames_to_save == -1) {
+    save_raw_data(registers_array, timestamp, -1, m_select_algorithm, m_register_TR_record_idx, m_register_TR_frame_idx);
   }
 
   m_frame_handler.m_tpg_processing_info->input = &registers_array;
@@ -222,10 +224,13 @@ void tpg_emulator_naive::execute_tpg(const dunedaq::fdreadoutlibs::types::DUNEWI
     m_frame_handler.m_tpg_processing_info->setState(registers_array);
     m_first_hit = false;    
     // Save ADC info
-    if (m_save_adc_data){
-      save_raw_data(registers_array, timestamp, -1, m_select_algorithm );
+    if (m_save_adc_data && m_num_frames_to_save == 1) {
+      save_raw_data(registers_array, timestamp, -1, m_select_algorithm, m_register_TR_record_idx, m_register_TR_frame_idx);
     }
     
+  }
+  if (m_save_adc_data && m_num_frames_to_save == -1) {
+    save_raw_data(registers_array, timestamp, -1, m_select_algorithm, m_register_TR_record_idx, m_register_TR_frame_idx);
   }
 
   m_frame_handler.m_tpg_processing_info->input = &registers_array;

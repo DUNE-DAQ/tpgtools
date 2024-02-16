@@ -36,7 +36,9 @@ $ wibeth_tpg_algorithms_emulator -f swtest_run000035_0000_dataflow0_datawriter_0
 
 ## Utility tools and scripts
 
-* `wibeth_tpg_workload_emulator` is a simple emulator for TPG algorithm in either a naive or in AVX implementation. The application allows to emulate the workload when running a TPG algorithm and therefore monitor performance metrics. It requires an input binary frame file (check assets-list for valid input files) and it will execute the desired TPG algorithm for a configurable duration (default value is 120 seconds). The application is single threaded, pinned to core 0 (configurable). Check the helper page for more details. Example of usage: `wibeth_tpg_workload_emulator -f wibeth_frame_file.bin` 
+* `wibeth_tpg_workload_emulator` is a simple emulator for TPG algorithm in either a naive or in AVX implementation. The application allows to emulate the workload when running a TPG algorithm and therefore monitor performance metrics. It requires an input binary frame file (check assets-list for valid input files) and it will execute the desired TPG algorithm for a configurable duration (default value is 120 seconds). The application is single threaded, pinned to core 0 (configurable). Check the helper page for more details. 
+
+Example of usage: `wibeth_tpg_workload_emulator -f wibeth_frame_file.bin` 
 
 * `wibeth_tpg_validation` is a simple emulator for validating different TPG algorithms, either in naive or in AVX implementation. Check the helper page for more details. Usage: `wibeth_tpg_validation -f wibeth_frame_file.bin` 
 
@@ -161,7 +163,8 @@ wibeth_tpg_pattern_generator -f wibeth_output_all_zeros.bin -n 2 -i 0 -t 499 -o 
 
 ### Workload emulator
 
-`wibeth_tpg_workload_emulator` is an emulator application for TPG algorithms. It takes as input a WIBEth frame file (`*.bin` file) and it will execute the selected TPG algorithm on the WIBFrame data. This application is used for comparing NAIVE and AVX implementations of a given TPG algorithm using a well known input test pattern file. 
+`wibeth_tpg_workload_emulator` is an emulator application for TPG algorithms. It takes as input a WIBEth frame file (`*.bin` file) and it will execute the selected TPG algorithm on the WIBEth frame data. This application is used for comparing NAIVE and AVX implementations of a given TPG algorithm using a well known input test pattern file. 
+
 To use the tool run the following:
 ```sh
 $ wibeth_tpg_workload_emulator --help
@@ -187,7 +190,7 @@ Options:
 Example of usage:
 ```sh
 $ wibeth_tpg_workload_emulator -f patt_golden_1_wibeth_output.bin -r false -a SimpleThreshold -i NAIVE -n 2 -t 64  --save-trigprim -s __1
-$ wibeth_tpg_workload_emulator -f patt_golden_1_wibeth_output.bin -r false -a AVX -n 2 -t 64  --save-trigprim -s __1
+$ wibeth_tpg_workload_emulator -f patt_golden_1_wibeth_output.bin -r false -a SimpleThreshold -i AVX -n 2 -t 64  --save-trigprim -s __1
 ```
 
 ## Notes
