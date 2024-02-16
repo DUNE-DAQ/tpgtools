@@ -42,7 +42,9 @@ using dunedaq::readoutlibs::logging::TLVL_BOOKKEEPING;
 // =================================================================
 //                     FRAME BINARY FILE
 // =================================================================
-
+/*
+ * Helper class to handle input/output frame binary files (*.bin)
+*/
 class FrameFile
 {
 public:
@@ -78,7 +80,7 @@ public:
         delete[] m_buffer;
     }
 
-       // Length of the file in bytes
+    // Length of the file in bytes
     size_t length() const {return m_length;}
     // Number of frames in the file
     size_t num_frames() const { return m_n_frames; }
@@ -109,6 +111,9 @@ protected:
 // =================================================================
 //                     PATTERN GENERATION INFO
 // =================================================================
+/*
+ * Contain all relevant parameters and pass that info to algorithms
+*/
 struct PattgenInfo
 {
   PattgenInfo(dunedaq::fddetdataformats::WIBEthFrame* output_frame_
@@ -172,8 +177,39 @@ class PattgenHandler {
 // =================================================================
 //                     PATTERN GENERATION ALGORITHMS
 // =================================================================
+/*
+ * Extendable class containing the existing algorithms
+ * New algorithms can be added here 
+*/
+struct PattgenAlgs 
+{
+  PattgenAlgs(std::unique_ptr<PattgenInfo>& info_)
+  : info(info_)
+  {
+    init();
+  }
+  std::unique_ptr<PattgenInfo>& info;
+  typedef void (*fnp)(PattgenInfo& info);
+  typedef std::map<std::string,fnp> tpgpg_t;
+  tpgpg_t tpgpg_map;
+
+  static void pattgen_function_golden(PattgenInfo& info);
+  static void pattgen_function_pulse(PattgenInfo& info);
+  static void pattgen_function_square(PattgenInfo& info);
+
+  void init() {
+    tpgpg_map["patt_golden"] = &pattgen_function_golden;
+    tpgpg_map["patt_pulse"] = &pattgen_function_pulse;
+    tpgpg_map["patt_square"] = &pattgen_function_square;
+  } 
+
+  void run_algorithm(std::string& alg_name, PattgenInfo& info) {
+    tpgpg_map[alg_name](info);
+  }
+};
+	
 void
-pattgen_function_golden(PattgenInfo& info) 
+PattgenAlgs::pattgen_function_golden(PattgenInfo& info) 
 {
   TLOG() << "********** GENERATED PATTERN: PATT_GOLDEN ";
 
@@ -206,7 +242,7 @@ pattgen_function_golden(PattgenInfo& info)
 }
 
 void
-pattgen_function_pulse(PattgenInfo& info) 
+PattgenAlgs::pattgen_function_pulse(PattgenInfo& info) 
 {
     TLOG() << "********** GENERATED PATTERN: PULSE ";
     for (int itime=0; itime<64; ++itime) {
@@ -226,7 +262,7 @@ pattgen_function_pulse(PattgenInfo& info)
 }
 
 void
-pattgen_function_square(PattgenInfo& info) 
+PattgenAlgs::pattgen_function_square(PattgenInfo& info) 
 {
     TLOG() << "********** GENERATED PATTERN: SQUARE ";
     for (int itime=0; itime<64; ++itime) {
@@ -246,32 +282,12 @@ pattgen_function_square(PattgenInfo& info)
     }
 }
 
-struct PattgenAlgs 
-{
-  PattgenAlgs(std::unique_ptr<PattgenInfo>& info_)
-  : info(info_)
-  {
-    init();
-  }
-  std::unique_ptr<PattgenInfo>& info;
-  typedef void (*fnp)(PattgenInfo& info);
-  typedef std::map<std::string,fnp> tpgpg_t;
-  tpgpg_t tpgpg_map;
-
-  void init() {
-    tpgpg_map["patt_golden"] = &pattgen_function_golden;
-    tpgpg_map["patt_pulse"] = &pattgen_function_pulse;
-    tpgpg_map["patt_square"] = &pattgen_function_square;
-  } 
-
-  void run_algorithm(std::string& alg_name, PattgenInfo& info) {
-    tpgpg_map[alg_name](info);
-  }
-};
-
 // =================================================================
 //                       PATTERN GENERATOR
 // =================================================================
+/*
+ * Invokes the algorithms using function pointers 
+*/
 void 
 execute_tpgpg(PattgenInfo& info, PattgenAlgs& pa) 
 {
@@ -314,87 +330,91 @@ execute_tpgpg(PattgenInfo& info, PattgenAlgs& pa)
 // =================================================================
 //                       PATTERN GENERATOR VALIDATION
 // =================================================================
-void hit_finder(std::vector<uint16_t>& adcs, std::vector<std::vector<int>>& out, const int& channel, 
+/*
+ * Standalone algorithm for ADC waveform analysis and signal identification, i.e. hit finding 
+ * Extracts hits (or trigger primitives) in an independent way using continuous waveform as input
+ * Hits are stored in a text file for reference and validation purposes 
+*/
+void waveform_analyser(std::vector<uint16_t>& adcs, std::vector<std::vector<int>>& out, const int& channel, 
 		const int& threshold) {
 
-      int m_tov_min = 2;
+  int m_tov_min = 2;
 
-      std::vector<int> igt;
-      std::vector<uint16_t>::iterator it_adcs = adcs.begin();
-      while ((it_adcs = find_if(it_adcs, adcs.end(), [&threshold](int x){return x > threshold; })) != adcs.end())
-      {
-        igt.push_back(distance(adcs.begin(), it_adcs));
-        it_adcs++;
-      }
+  std::vector<int> tover; // ADCs above threshold 
+  std::vector<uint16_t>::iterator it_adcs = adcs.begin();
+  while ((it_adcs = find_if(it_adcs, adcs.end(), [&threshold](int x){return x > threshold; })) != adcs.end())
+  {
+     tover.push_back(distance(adcs.begin(), it_adcs));
+     it_adcs++;
+  }
 
-      if((int)igt.size() < m_tov_min){
-        return void();
-      }
+  if((int)tover.size() < m_tov_min){
+    return void();
+  }
 
-      std::vector<int> igt_diff;
-      adjacent_difference (igt.begin(), igt.end(), back_inserter(igt_diff));
-      igt_diff.erase(igt_diff.begin());
+  std::vector<int> tover_diff;
+  adjacent_difference (tover.begin(), tover.end(), back_inserter(tover_diff));
+  tover_diff.erase(tover_diff.begin());
 
-      // find start and end of hits
-      std::vector<int> istart;
-      std::vector<int> iend;
-      istart.push_back(0);
-      std::vector<int>::iterator it_igt = igt_diff.begin();
-      while ((it_igt = find_if(it_igt, igt_diff.end(), [ ](int x){return x != 1; })) != igt_diff.end())
-      {
-        istart.push_back(distance(igt_diff.begin(), it_igt)+1);
-        iend.push_back(distance(igt_diff.begin(), it_igt));
-        it_igt++;
-      }
-      iend.push_back(igt.size()-1);
+  // find start and end of hits
+  std::vector<int> istart;
+  std::vector<int> iend;
+  istart.push_back(0);
+  std::vector<int>::iterator it_tover = tover_diff.begin();
+  while ((it_tover = find_if(it_tover, tover_diff.end(), [ ](int x){return x != 1; })) != tover_diff.end())
+  {
+    istart.push_back(distance(tover_diff.begin(), it_tover)+1);
+    iend.push_back(distance(tover_diff.begin(), it_tover));
+    it_tover++;
+  }
+  iend.push_back(tover.size()-1);
 
-      std::vector<int> start;
-      std::vector<int> end;
-      std::vector<int> hitcontinue;
-      for(long unsigned int i = 0; i < istart.size(); i++){
-        start.push_back(igt[istart[i]]);
-        end.push_back(igt[iend[i]]);
-        if(end[i] == 63){
-          hitcontinue.push_back(1);
-        }else{
-          hitcontinue.push_back(0);
-        }
-      }
+  std::vector<int> start;
+  std::vector<int> end;
+  std::vector<int> hitcontinue;
+  for(long unsigned int i = 0; i < istart.size(); i++){
+    start.push_back(tover[istart[i]]);
+    end.push_back(tover[iend[i]]);
+    if(end[i] == 63){
+      hitcontinue.push_back(1);
+    }else{
+      hitcontinue.push_back(0);
+    }
+  }
 
-      // find hit sums
-      std::vector<int> sums;
-      for(long unsigned int j = 0; j < start.size(); j++){
-	std::vector<uint16_t>::iterator it_start = adcs.begin()+start[j];
-	std::vector<uint16_t>::iterator it_end = adcs.begin()+end[j]+1;
-        int sum = accumulate(it_start, it_end, 0);
-        sums.push_back(sum);
-      }
+  // find hit sums
+  std::vector<int> sums;
+  for(long unsigned int j = 0; j < start.size(); j++){
+      std::vector<uint16_t>::iterator it_start = adcs.begin()+start[j];
+      std::vector<uint16_t>::iterator it_end = adcs.begin()+end[j]+1;
+      int sum = accumulate(it_start, it_end, 0);
+      sums.push_back(sum);
+  }
 
-      // find peak adcs and times
-      std::vector<int> peak_adcs;
-      std::vector<int> peak_times;
-      for(long unsigned int j = 0; j < start.size(); j++){
-	std::vector<uint16_t>::iterator it_start = adcs.begin()+start[j];
-	std::vector<uint16_t>::iterator it_end = adcs.begin()+end[j]+1;
-	std::vector<uint16_t>::iterator max = max_element(it_start, it_end);
-        int peak = *max;
-        int time = distance(adcs.begin(), max);
-        peak_adcs.push_back(peak);
-        peak_times.push_back(time);
-      }
+  // find peak adcs and times
+  std::vector<int> peak_adcs;
+  std::vector<int> peak_times;
+  for(long unsigned int j = 0; j < start.size(); j++){
+    std::vector<uint16_t>::iterator it_start = adcs.begin()+start[j];
+    std::vector<uint16_t>::iterator it_end = adcs.begin()+end[j]+1;
+    std::vector<uint16_t>::iterator max = max_element(it_start, it_end);
+    int peak = *max;
+    int time = distance(adcs.begin(), max);
+    peak_adcs.push_back(peak);
+    peak_times.push_back(time);
+  }
 
-      // check output hits fullfil the m_tov_min condition
-      for(long unsigned int k = 0; k < start.size(); k++){
-        if (peak_adcs[k] > 16384) {
-          continue; // 2**14
-        }
-        if (end[k]-start[k] >= m_tov_min-1){
-	  std::vector<int> aux = {start[k], end[k], peak_times[k], channel, sums[k], peak_adcs[k], hitcontinue[k]};
-          out.push_back(aux);
-	}
-      }
+  // check output hits fullfil the m_tov_min condition
+  for(long unsigned int k = 0; k < start.size(); k++){
+    if (peak_adcs[k] > 16384) {
+      continue; // 2**14
+    }
+    if (end[k]-start[k] >= m_tov_min-1){
+      std::vector<int> aux = {start[k], end[k], peak_times[k], channel, sums[k], peak_adcs[k], hitcontinue[k]};
+      out.push_back(aux);
+    }
+  }
 }
-
 	
 void
 execute_tpgpg_validation(PattgenInfo& info)
@@ -439,7 +459,7 @@ execute_tpgpg_validation(PattgenInfo& info)
   }
   output_file_pedsub.close();
 
-  // 2. hit finding
+  // 2. standalone hit finding
   dunedaq::fddetdataformats::WIBEthFrame* input_frame_pedsub; 
   std::string input_file_name = info.out_prefix+"_wibeth_output.bin";
 
@@ -468,9 +488,9 @@ execute_tpgpg_validation(PattgenInfo& info)
 	adcs.push_back(adc);
       }
     }
-    hit_finder(adcs, tmp_out, ch, info.tpg_threshold);
+    waveform_analyser(adcs, tmp_out, ch, info.tpg_threshold);
     for (auto& it : tmp_out) {
-      // start[k], end[k], peak_times[k], channel, sums[k], peak_adcs[k], hitcontinue[k]
+      // start, end, peak_times, channel, sums, peak_adcs, hitcontinue
       uint64_t ts_tov = (it[1]-it[0])*32;
       uint64_t ts_start = it[0] * 32 + timestamp;
       uint64_t ts_peak = it[2] * 32 + timestamp;

@@ -67,13 +67,22 @@ public:
     }
   }
 
+  void register_TR_info(int TR_record_idx, int TR_frame_idx) {
+    m_register_TR_record_idx = std::to_string(TR_record_idx);
+    m_register_TR_frame_idx = std::to_string(TR_frame_idx);
+  }
+
   void set_tpg_threshold(int tpg_threshold){
     m_tpg_threshold = tpg_threshold;
   }
 
   void set_CPU_affinity(int core_number) {
     m_CPU_core = core_number;
-  }  
+  }
+
+  void set_num_frames_to_save(int num_frames_to_save) {
+    m_num_frames_to_save = num_frames_to_save;
+  }
 
   unsigned int get_total_hits() {
     return m_total_hits;
@@ -103,6 +112,7 @@ public:
 
   int m_tpg_threshold = 500; //default value 
   int m_CPU_core = 0;
+  int m_num_frames_to_save = 1;
 
   uint16_t m_tpg_rs_memory_factor = 8;
   uint16_t m_tpg_rs_scale_factor = 5;
@@ -120,13 +130,9 @@ public:
   swtpg_wibeth::RegisterChannelMap m_register_channel_map;   
   // Mapping from expanded AVX register position to offline channel number
   std::array<uint, swtpg_wibeth::NUM_REGISTERS_PER_FRAME * swtpg_wibeth::SAMPLES_PER_REGISTER> m_register_channels = {};
-
-  // Create an array to store the values of the memory factor 
-  // AAA: silver bullet to be able to use SimpleThreshold on collection and RS on induction planes
-  // By default set all the values to the selected memory factor 
-  std::array<uint16_t, swtpg_wibeth::NUM_REGISTERS_PER_FRAME * swtpg_wibeth::SAMPLES_PER_REGISTER> m_register_memory_factor = {0};
-
-
+  // TR info for validation purposes
+  std::string m_register_TR_record_idx = "0";
+  std::string m_register_TR_frame_idx = "0";
 };
 
 

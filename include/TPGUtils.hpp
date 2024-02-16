@@ -67,7 +67,8 @@ void save_TP_object( triggeralgs::TriggerPrimitive trigprim, std::string algo,
 // Function to save raw ADC data to a file (only for debugging) 
 void save_raw_data(swtpg_wibeth::MessageRegisters register_array, 
 	       uint64_t t0, int channel_number,
-           std::string algo)
+           std::string algo, 
+	   std::string TR_record_idx, std::string TR_frame_idx)
 {
   std::ofstream out_file;
 
@@ -80,9 +81,9 @@ void save_raw_data(swtpg_wibeth::MessageRegisters register_array,
   
   std::string file_name;
   if (channel_number == -1) {
-    file_name = "all_channels_" + algo + "_data" + date_time_str + ".txt";
+    file_name = "all_channels_" + algo + "_tr_" + TR_record_idx + "_fr_" + TR_frame_idx + "_data" + date_time_str + ".txt";
   } else {
-    file_name = "Channel_" + std::to_string(channel_number) + "_" + algo + "_data" + date_time_str + ".txt";
+    file_name = "Channel_" + std::to_string(channel_number) + "_" + algo + "_tr_" + TR_record_idx + "_fr_" + TR_frame_idx + "_data" + date_time_str + ".txt";
   }
   out_file.open(file_name.c_str(), std::ofstream::app);
 
