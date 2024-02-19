@@ -196,11 +196,15 @@ struct PattgenAlgs
   static void pattgen_function_golden(PattgenInfo& info);
   static void pattgen_function_pulse(PattgenInfo& info);
   static void pattgen_function_square(PattgenInfo& info);
+  static void pattgen_function_square_left(PattgenInfo& info);
+  static void pattgen_function_square_right(PattgenInfo& info);
 
   void init() {
     tpgpg_map["patt_golden"] = &pattgen_function_golden;
     tpgpg_map["patt_pulse"] = &pattgen_function_pulse;
     tpgpg_map["patt_square"] = &pattgen_function_square;
+    tpgpg_map["patt_square_left"] = &pattgen_function_square_left;
+    tpgpg_map["patt_square_right"] = &pattgen_function_square_right;
   } 
 
   void run_algorithm(std::string& alg_name, PattgenInfo& info) {
@@ -281,6 +285,47 @@ PattgenAlgs::pattgen_function_square(PattgenInfo& info)
       }
     }
 }
+
+void
+pattgen_function_square_left(PattgenInfo& info) {
+    TLOG() << "********** GENERATED PATTERN: EDGE_LEFT ";
+    for (int itime=0; itime<64; ++itime) {
+      for (int ch=0; ch<64; ++ch) {
+        info.output_frame->set_adc(ch, itime, 0);
+      }
+      if (itime >= 0 && itime<=62 && info.iframe==0) {
+        TLOG() << "Nothing to do for first frame";
+      } else {
+        if (itime == 0) info.output_frame->set_adc(info.input_ch, itime, 500);
+        if (itime == 63) info.output_frame->set_adc(info.input_ch, itime, 501);
+      }
+      if (info.verbose) {
+        uint16_t adc_val = info.output_frame->get_adc(info.input_ch, itime);
+        TLOG() << "Output ADC value: " << adc_val << "\t\t\tFrame: " << i << " \t\tChannel: " << info.input_ch << " \t\tTimeSample: " << itime;
+      }
+    }
+}
+
+void
+pattgen_function_square_right(PattgenInfo& info) {
+    TLOG() << "********** GENERATED PATTERN: EDGE_RIGHT ";
+    for (int itime=0; itime<64; ++itime) {
+      for (int ch=0; ch<64; ++ch) {
+        info.output_frame->set_adc(ch, itime, 0);
+      }
+      if (itime >= 0 && itime<=62 && info.iframe==0) {
+        TLOG() << "Nothing to do for first frame";
+      } else {
+        if (itime == 0) info.output_frame->set_adc(info.input_ch, itime, 501);
+        if (itime == 63) info.output_frame->set_adc(info.input_ch, itime, 500);
+      }
+      if (info.verbose) {
+        uint16_t adc_val = info.output_frame->get_adc(info.input_ch, itime);
+        TLOG() << "Output ADC value: " << adc_val << "\t\t\tFrame: " << i << " \t\tChannel: " << info.input_ch << " \t\tTimeSample: " << itime;
+      }
+    }
+}
+
 
 // =================================================================
 //                       PATTERN GENERATOR

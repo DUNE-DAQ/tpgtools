@@ -56,7 +56,7 @@ main(int argc, char** argv)
     app.add_option("-s ,--out_suffix", out_suffix, "Append string (suffix) to output hit file name");
 
     std::string select_pattern = "patt_golden";
-    app.add_option("-p,--select-pattern", select_pattern, "Test pattern name (patt_golden, patt_pulse, patt_edge_square, patt_edge_left, patt_edge_right). Default: patt_golden.");
+    app.add_option("-p,--select-pattern", select_pattern, "Test pattern name (patt_golden, patt_pulse, patt_square, patt_square_left, patt_square_right). Default: patt_golden.");
 
     bool overwrite_wibeth_header = false;
     app.add_flag("-w,--overwrite-wibeth-header", overwrite_wibeth_header, "Overwrite crate, slot, stream IDs (needed for offline channel map). Default: false.");

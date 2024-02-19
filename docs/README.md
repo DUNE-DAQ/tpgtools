@@ -149,7 +149,7 @@ Options:
   --save-trigprim             Save trigger primitive data
   -o,--time-tick-offset INT   Time tick of pattern start. Default: 1 (max:63).
   -s,--out_suffix TEXT        Append string (suffix) to output hit file name
-  -p,--select-pattern TEXT    Test pattern name (patt_golden, patt_pulse, patt_edge_square, patt_edge_left, patt_edge_right). Default: patt_golden.
+  -p,--select-pattern TEXT    Test pattern name (patt_golden, patt_pulse, patt_square, patt_square_left, patt_square_right). Default: patt_golden.
   -w,--overwrite-wibeth-header
                               Overwrite crate, slot, stream IDs (needed for offline channel map). Default: false.
   -v,--verbose                Printout additional information while the application is running. Default: false.
