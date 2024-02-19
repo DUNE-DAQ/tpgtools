@@ -212,6 +212,7 @@ struct PattgenAlgs
   }
 };
 	
+// one global and two smaller peaks
 void
 PattgenAlgs::pattgen_function_golden(PattgenInfo& info) 
 {
@@ -245,6 +246,7 @@ PattgenAlgs::pattgen_function_golden(PattgenInfo& info)
   }
 }
 
+// single peak on single channel at single clock tick
 void
 PattgenAlgs::pattgen_function_pulse(PattgenInfo& info) 
 {
@@ -265,6 +267,7 @@ PattgenAlgs::pattgen_function_pulse(PattgenInfo& info)
     }
 }
 
+// square shape fully contained within 64 clock ticks
 void
 PattgenAlgs::pattgen_function_square(PattgenInfo& info) 
 {
@@ -286,6 +289,7 @@ PattgenAlgs::pattgen_function_square(PattgenInfo& info)
     }
 }
 
+// simple square shape across 2 WIBEth frames, peak is in first frame
 void
 pattgen_function_square_left(PattgenInfo& info) {
     TLOG() << "********** GENERATED PATTERN: EDGE_LEFT ";
@@ -306,6 +310,7 @@ pattgen_function_square_left(PattgenInfo& info) {
     }
 }
 
+// simple square shape across 2 WIBEth frames, peak is in second frame
 void
 pattgen_function_square_right(PattgenInfo& info) {
     TLOG() << "********** GENERATED PATTERN: EDGE_RIGHT ";
