@@ -291,7 +291,7 @@ PattgenAlgs::pattgen_function_square(PattgenInfo& info)
 
 // simple square shape across 2 WIBEth frames, peak is in first frame
 void
-pattgen_function_square_left(PattgenInfo& info) {
+PattgenAlgs::pattgen_function_square_left(PattgenInfo& info) {
     TLOG() << "********** GENERATED PATTERN: EDGE_LEFT ";
     for (int itime=0; itime<64; ++itime) {
       for (int ch=0; ch<64; ++ch) {
@@ -305,14 +305,14 @@ pattgen_function_square_left(PattgenInfo& info) {
       }
       if (info.verbose) {
         uint16_t adc_val = info.output_frame->get_adc(info.input_ch, itime);
-        TLOG() << "Output ADC value: " << adc_val << "\t\t\tFrame: " << i << " \t\tChannel: " << info.input_ch << " \t\tTimeSample: " << itime;
+        TLOG() << "Output ADC value: " << adc_val << "\t\t\tFrame: " << itime << " \t\tChannel: " << info.input_ch << " \t\tTimeSample: " << itime;
       }
     }
 }
 
 // simple square shape across 2 WIBEth frames, peak is in second frame
 void
-pattgen_function_square_right(PattgenInfo& info) {
+PattgenAlgs::pattgen_function_square_right(PattgenInfo& info) {
     TLOG() << "********** GENERATED PATTERN: EDGE_RIGHT ";
     for (int itime=0; itime<64; ++itime) {
       for (int ch=0; ch<64; ++ch) {
@@ -326,7 +326,7 @@ pattgen_function_square_right(PattgenInfo& info) {
       }
       if (info.verbose) {
         uint16_t adc_val = info.output_frame->get_adc(info.input_ch, itime);
-        TLOG() << "Output ADC value: " << adc_val << "\t\t\tFrame: " << i << " \t\tChannel: " << info.input_ch << " \t\tTimeSample: " << itime;
+        TLOG() << "Output ADC value: " << adc_val << "\t\t\tFrame: " << itime << " \t\tChannel: " << info.input_ch << " \t\tTimeSample: " << itime;
       }
     }
 }
