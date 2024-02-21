@@ -12,6 +12,7 @@
 
 #include "iomanager/IOManager.hpp"
 
+
 #include "readoutlibs/utils/RateLimiter.hpp"
 #include "readoutlibs/utils/FileSourceBuffer.hpp"
 #include "readoutlibs/utils/BufferedFileWriter.hpp"
@@ -65,7 +66,7 @@ bool first_hit = true;
 dunedaq::fdreadoutlibs::WIB2FrameHandler fh(0);
 int duration_test = 120; // default value
 
-
+dunedaq::trgdataformats::TriggerPrimitive::Algorithm m_tp_algo = dunedaq::trgdataformats::TriggerPrimitive::Algorithm::kUnknown; 
 std::function<void(swtpg_wib2::ProcessingInfo<swtpg_wib2::NUM_REGISTERS_PER_FRAME>& info, size_t channel_offset)> m_assigned_tpg_algorithm_function;
 
 std::string select_algorithm = "";
@@ -210,7 +211,7 @@ void extract_hits_naive(uint16_t* output_location, uint64_t timestamp) {
       trigprim.adc_peak = hit_charge  / 20;
       trigprim.detid = 666; 
       trigprim.type = triggeralgs::TriggerPrimitive::Type::kTPC;
-      trigprim.algorithm = triggeralgs::TriggerPrimitive::Algorithm::kTPCDefault;
+      trigprim.algorithm = m_tp_algo;
       trigprim.version = 1;
     
       if (save_trigprim) {
@@ -275,7 +276,7 @@ void extract_hits_avx(uint16_t* output_location, uint64_t timestamp) {
           trigprim.adc_peak = hit_charge[i] / 20;
           trigprim.detid = 666;          
           trigprim.type = triggeralgs::TriggerPrimitive::Type::kTPC;
-          trigprim.algorithm = triggeralgs::TriggerPrimitive::Algorithm::kTPCDefault;
+          trigprim.algorithm = m_tp_algo;
           trigprim.version = 1;
 
           if (save_trigprim){
