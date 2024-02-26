@@ -32,7 +32,8 @@ parser.add_argument('-t', '--ticks-limit',          type=int,    default=3,     
 parser.add_argument('-c', '--channel-limit',        type=int,    default=1,           help='closeness in channels to cluster TPs')
 parser.add_argument('-m', '--min-tps',              type=int,    default=3,           help='minimum number of TPs to create a cluster and then an image')
 parser.add_argument('--channel-map',                type=str,    default="APA",       help='"APA", "CRP" or "50L"')
-parser.add_argument('--save-clusters',                action='store_true',              help='write the clusters to a textfile')
+parser.add_argument('--save-clusters',              action='store_true',              help='write the clusters to a textfile')
+parser.add_argument('--cluster_event_display',      action='store_true',              help='save the clusters event display')
 parser.add_argument('--show',                       action='store_true',              help='show the image')
 parser.add_argument('--fixed-size',                 action='store_true',              help='make the image size fixed')
 parser.add_argument('--img-width',                  type=int,    default=200,          help='width of the image, if fixed size')
@@ -50,7 +51,8 @@ ticks_limit             = args.ticks_limit
 channel_limit           = args.channel_limit
 min_tps                 = args.min_tps
 channel_map             = args.channel_map
-save_clusters             = args.save_clusters
+save_clusters           = args.save_clusters
+cluster_event_display   = args.cluster_event_display
 fixed_size              = args.fixed_size
 width                   = args.img_width
 height                  = args.img_height
@@ -69,6 +71,7 @@ print(" - Channel limit: " + str(channel_limit))
 print(" - Minimum number of TPs to create a cluster: " + str(min_tps))
 print(" - Channel Map: " + str(channel_map))
 print(" - Save clusters: " + str(save_clusters))
+print(" - Cluster event display: " + str(cluster_event_display))
 print(" - Show image: " + str(show))
 print(" - Fixed size: " + str(fixed_size))
 print(" - Image width: " + str(width))
@@ -125,23 +128,23 @@ save_image(all_TPs,
            only_collection=False,
            show=show)
 print("Done!")
-print("Creating images for each cluster...")
-
-for i, cluster in enumerate(clusters):
-    save_image(cluster, 
-               my_channel_map, 
-               output_path=output_path, 
-               output_name= "track" + str(i),
-               min_tps_to_create_img=min_tps, 
-               make_fixed_size=fixed_size, 
-               width=width, 
-               height=height, 
-               x_margin=x_margin,
-               y_margin=y_margin,
-               only_collection=False,
-               show=show)
-print("Done!")
-print(" ")
+if cluster_event_display:
+    print("Creating images for each cluster...")
+    for i, cluster in enumerate(clusters):
+        save_image(cluster, 
+                my_channel_map, 
+                output_path=output_path, 
+                output_name= "track" + str(i),
+                min_tps_to_create_img=min_tps, 
+                make_fixed_size=fixed_size, 
+                width=width, 
+                height=height, 
+                x_margin=x_margin,
+                y_margin=y_margin,
+                only_collection=False,
+                show=show)
+    print("Done!")
+    print(" ")
     
 if save_clusters:
     output_clustersFile = os.path.basename(input_file)
