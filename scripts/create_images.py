@@ -89,6 +89,7 @@ if verbose:
 
 # create channel map to distinguish induction and collection
 my_channel_map = create_channel_map_array(which_channel_map=channel_map)
+print("Channel map created: ", channel_map)
 
 clusters = make_clusters(all_TPs, my_channel_map, 
                      ticks_limit=ticks_limit, 
@@ -107,6 +108,24 @@ print (" ")
 if not os.path.exists(output_path):
     os.makedirs(output_path)
     print ("Created output folder: " + output_path)
+
+
+print("Creating event display image...")
+# Create the images
+save_image(all_TPs, 
+           my_channel_map, 
+           output_path=output_path, 
+           output_name="event_display",
+           min_tps_to_create_img=min_tps, 
+           make_fixed_size=True, 
+           width=width*3, 
+           height=height*3, 
+           x_margin=x_margin,
+           y_margin=y_margin,
+           only_collection=False,
+           show=show)
+print("Done!")
+print("Creating images for each cluster...")
 
 for i, cluster in enumerate(clusters):
     save_image(cluster, 

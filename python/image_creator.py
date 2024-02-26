@@ -234,7 +234,7 @@ def save_image(tps_to_draw, channel_map, output_path, output_name='test', min_tp
     #create images
     img_u, img_v, img_x = create_images(tps_to_draw, channel_map, min_tps_to_create_img=min_tps_to_create_img, make_fixed_size=make_fixed_size, width=width, height=height, x_margin=x_margin, y_margin=y_margin, only_collection=only_collection)
     max_pixel_value_overall = np.max([np.max(img_u), np.max(img_v), np.max(img_x)])
-
+    
     #save images
     if not os.path.exists(output_path):
         os.makedirs(output_path)
@@ -364,7 +364,7 @@ def save_image(tps_to_draw, channel_map, output_path, output_name='test', min_tp
 
 
     if n_views > 1:
-        fig = plt.figure(figsize=(20, 100))
+        fig = plt.figure(figsize=(60, 40))
         grid = ImageGrid(fig, 111,          # as in plt.subplot(111)
                         nrows_ncols=(1,3),
                         axes_pad=0.5,
