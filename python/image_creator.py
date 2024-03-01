@@ -166,10 +166,7 @@ def show_image(tps_to_draw, channel_map, min_tps_to_create_img=2, make_fixed_siz
     :param x_margin: margin on the x axis if make_fixed_size is False
     :param y_margin: margin on the y axis if make_fixed_size is False
     '''
-    img_u = []
-    img_v = []
-    img_x = []
-    
+   
     # If not given as argument, create images
     if img_u[0, 0] == -1 or img_v[0, 0] == -1 or img_x[0, 0] == -1:
         img_u, img_v, img_x = create_images(tps_to_draw, channel_map, min_tps_to_create_img=min_tps_to_create_img, make_fixed_size=make_fixed_size, width=width, height=height, x_margin=x_margin, y_margin=y_margin, only_collection=only_collection)
@@ -229,6 +226,12 @@ def save_image(tps_to_draw, channel_map, output_path, output_name='test', min_tp
     :param x_margin: margin on the x axis if make_fixed_size is False
     :param y_margin: margin on the y axis if make_fixed_size is False
     '''
+    n_x_ticks = 5
+    fontsize = 30
+    t_shift = tps_to_draw[0]['time_start']
+    tps_to_draw['time_start'] = tps_to_draw['time_start'] - t_shift 
+    tps_to_draw['time_peak'] = tps_to_draw['time_peak'] - t_shift
+
     total_channels = channel_map.shape[0]
 
     #create images
@@ -273,21 +276,21 @@ def save_image(tps_to_draw, channel_map, output_path, output_name='test', min_tp
 
         if make_fixed_size:
             if img_width > x_range_u:
-                x_margin_u = (img_width - x_range_u)/2    
-        xticks_labels_u = [x_min_u-x_margin_u + i*(x_range_u + 2*x_margin_u)//2 for i in range(2)]
+                x_margin_u = int((img_width - x_range_u)/2)    
+        xticks_labels_u = [x_min_u-x_margin_u + i*(x_range_u + 2*x_margin_u)//n_x_ticks for i in range(n_x_ticks)]
 
         n_views += 1
         plt.figure(figsize=(20, 100))
-        plt.title('U plane')
+        plt.title('U plane', fontsize=fontsize)
         plt.imshow(img_u)
         # plt.colorbar()
         # add x and y labels
-        plt.xlabel('channel')
-        plt.ylabel("Time (ticks)")
+        plt.xlabel('channel', fontsize=fontsize)
+        plt.ylabel("Time (ticks)", fontsize=fontsize)
         # set y axis ticks
-        plt.yticks(ticks=np.arange(0, img_u.shape[0], img_u.shape[0]/10), labels=yticks_labels)
+        plt.yticks(ticks=np.arange(0, img_u.shape[0], img_u.shape[0]/10), labels=yticks_labels, fontsize=fontsize)
         # set x axis ticks
-        plt.xticks(ticks=np.arange(0, img_u.shape[1], img_u.shape[1]/2), labels=xticks_labels_u)
+        plt.xticks(ticks=np.arange(0, img_u.shape[1], img_u.shape[1]/n_x_ticks), labels=xticks_labels_u, fontsize=fontsize)
 
         # save the image, with a bbox in inches smaller than the default but bigger than tight
         plt.savefig(output_path+ 'u_' + os.path.basename(output_name) + '.png', bbox_inches='tight', pad_inches=1)
@@ -304,22 +307,22 @@ def save_image(tps_to_draw, channel_map, output_path, output_name='test', min_tp
 
         if make_fixed_size:
             if img_width > x_range_v:
-                x_margin_v = (img_width - x_range_v)/2
-        xticks_labels_v = [x_min_v-x_margin_v + i*(x_range_v + 2*x_margin_v)//2 for i in range(2)]
+                x_margin_v = int((img_width - x_range_v)/2)
+        xticks_labels_v = [x_min_v-x_margin_v + i*(x_range_v + 2*x_margin_v)//n_x_ticks for i in range(n_x_ticks)]
         
         n_views += 1
         plt.figure(figsize=(20, 100))    
-        plt.title('V plane')
+        plt.title('V plane', fontsize=fontsize)
         plt.imshow(img_v)
         # plt.colorbar()
         # add x and y labels
-        plt.xlabel('channel')
-        plt.ylabel("Time (ticks)")
+        plt.xlabel('channel', fontsize=fontsize)
+        plt.ylabel("Time (ticks)", fontsize=fontsize)
 
         # set y axis ticks
-        plt.yticks(ticks=np.arange(0, img_v.shape[0], img_v.shape[0]/10), labels=yticks_labels)
+        plt.yticks(ticks=np.arange(0, img_v.shape[0], img_v.shape[0]/10), labels=yticks_labels, fontsize=fontsize)
         # set x axis ticks
-        plt.xticks(ticks=np.arange(0, img_v.shape[1], img_v.shape[1]/2), labels=xticks_labels_v)
+        plt.xticks(ticks=np.arange(0, img_v.shape[1], img_v.shape[1]/n_x_ticks), labels=xticks_labels_v, fontsize=fontsize)
 
         # save the image, with a bbox in inches smaller than the default but bigger than tight
         plt.savefig(output_path+ 'v_' + os.path.basename(output_name) + '.png', bbox_inches='tight', pad_inches=1)
@@ -336,21 +339,21 @@ def save_image(tps_to_draw, channel_map, output_path, output_name='test', min_tp
 
         if make_fixed_size:
             if img_width > x_range_x:
-                x_margin_x = (img_width - x_range_x)/2
-        xticks_labels_x = [x_min_x-x_margin_x + i*(x_range_x + 2*x_margin_x)//2 for i in range(2)]
+                x_margin_x = int((img_width - x_range_x)/2)
+        xticks_labels_x = [x_min_x-x_margin_x + i*(x_range_x + 2*x_margin_x)//n_x_ticks for i in range(n_x_ticks)]
 
         n_views += 1
         plt.figure(figsize=(20, 100))
-        plt.title('X plane')
+        plt.title('X plane', fontsize=fontsize)
         plt.imshow(img_x)
         # plt.colorbar()
         # add x and y labels
-        plt.xlabel('channel')
-        plt.ylabel("Time (ticks)")
+        plt.xlabel('channel', fontsize=fontsize)
+        plt.ylabel("Time (ticks)", fontsize=fontsize)
         # set y axis ticks
-        plt.yticks(ticks=np.arange(0, img_x.shape[0], img_x.shape[0]/10), labels=yticks_labels)
+        plt.yticks(ticks=np.arange(0, img_x.shape[0], img_x.shape[0]/10), labels=yticks_labels, fontsize=fontsize)
         # set x axis ticks
-        plt.xticks(ticks=np.arange(0, img_x.shape[1], img_x.shape[1]/2), labels=xticks_labels_x)
+        plt.xticks(ticks=np.arange(0, img_x.shape[1], img_x.shape[1]/n_x_ticks), labels=xticks_labels_x, fontsize=fontsize)
 
         # save the image, with a bbox in inches smaller than the default but bigger than tight
         plt.savefig(output_path+ 'x_' + os.path.basename(output_name) + '.png', bbox_inches='tight', pad_inches=1)
@@ -368,35 +371,39 @@ def save_image(tps_to_draw, channel_map, output_path, output_name='test', min_tp
         grid = ImageGrid(fig, 111,          # as in plt.subplot(111)
                         nrows_ncols=(1,3),
                         axes_pad=0.5,
-                        share_all=True,
+                        share_all=False,
                         cbar_location="right",
                         cbar_mode="single",
-                        cbar_size="30%",
+                        cbar_size="10%",
                         cbar_pad=0.25,
                         )   
-
-
+        
         if img_u[0, 0] != -1:
             im = grid[0].imshow(img_u, vmin=0, vmax=max_pixel_value_overall)
-            grid[0].set_title('U plane')
-            # grid[0].set_xticks(np.arange(0, img_u.shape[1], img_u.shape[1]/2))
-            # grid[0].set_xticklabels(xticks_labels_u)
+            grid[0].set_title('U plane', fontsize=fontsize)
+            grid[0].set_xticks(np.arange(0, img_u.shape[1], img_u.shape[1]/n_x_ticks))
+            xticks_labels_u = [x_min_u-x_margin_u + i*(x_range_u + 2*x_margin_u)//n_x_ticks for i in range(n_x_ticks)]
+            grid[0].set_xticklabels(xticks_labels_u, fontsize=fontsize)
         if img_v[0, 0] != -1:
             im = grid[1].imshow(img_v, vmin=0, vmax=max_pixel_value_overall)
-            grid[1].set_title('V plane')
-            # grid[1].set_xticks(np.arange(0, img_v.shape[1], img_v.shape[1]/2))
-            # grid[1].set_xticklabels(xticks_labels_v)
+            grid[1].set_title('V plane', fontsize=fontsize)
+            grid[1].set_xticks(np.arange(0, img_v.shape[1], img_v.shape[1]/n_x_ticks))
+            xticks_labels_v = [x_min_v-x_margin_v + i*(x_range_v + 2*x_margin_v)//n_x_ticks for i in range(n_x_ticks)]
+            grid[1].set_xticklabels(xticks_labels_v, fontsize=fontsize)
         if img_x[0, 0] != -1:
             im = grid[2].imshow(img_x, vmin=0, vmax=max_pixel_value_overall)
-            grid[2].set_title('X plane')
-            # grid[2].set_xticks(np.arange(0, img_x.shape[1], img_x.shape[1]/2))
-            # grid[2].set_xticklabels(xticks_labels_x)
+            grid[2].set_title('X plane', fontsize=fontsize)
+            grid[2].set_xticks(np.arange(0, img_x.shape[1], img_x.shape[1]/n_x_ticks))
+            xticks_labels_x = [x_min_x-x_margin_x + i*(x_range_x + 2*x_margin_x)//n_x_ticks for i in range(n_x_ticks)]
+            grid[2].set_xticklabels(xticks_labels_x, fontsize=fontsize)
 
         grid.cbar_axes[0].colorbar(im)
+        # grid.cbar.ax.tick_params(labelsize=fontsize) 
+        grid.cbar_axes[0].set_yticklabels(np.arange(0, max_pixel_value_overall, max_pixel_value_overall/10, dtype=int), fontsize=fontsize, )
         # grid.axes_llc.set_yticks(yticks_labels)
         # use the same yticks_labels for all the images
         grid.axes_llc.set_yticks(np.arange(0, img_v.shape[0], img_v.shape[0]/10))
-        grid.axes_llc.set_yticklabels(yticks_labels)
+        grid.axes_llc.set_yticklabels(yticks_labels, fontsize=fontsize)
         
         # save the image
         plt.savefig(output_path+ 'multiview_' + os.path.basename(output_name) + '.png')
