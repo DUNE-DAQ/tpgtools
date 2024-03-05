@@ -127,7 +127,6 @@ save_event_display(all_TPs,
                     y_margin=y_margin)
 
 print("Done!")
-exit()
 if cluster_event_display:
     print("Creating images for each cluster...")
     for i, cluster in enumerate(clusters):
