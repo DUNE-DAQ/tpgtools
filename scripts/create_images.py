@@ -19,7 +19,7 @@ import sys
 sys.path.append('../python/') 
 from utils import save_tps_array, create_channel_map_array
 from hdf5_converter import convert_tpstream_to_numpy 
-from image_creator import save_image, show_image
+from image_creator import save_image, show_image, save_event_display
 from cluster_maker import make_clusters
 
 
@@ -115,19 +115,19 @@ if not os.path.exists(output_path):
 
 print("Creating event display image...")
 # Create the images
-save_image(all_TPs, 
-           my_channel_map, 
-           output_path=output_path, 
-           output_name="event_display",
-           min_tps_to_create_img=min_tps, 
-           make_fixed_size=True, 
-           width=width*3, 
-           height=height*3, 
-           x_margin=x_margin,
-           y_margin=y_margin,
-           only_collection=False,
-           show=show)
+
+save_event_display(all_TPs,
+                    channel_map=my_channel_map,
+                    output_path=output_path,
+                    output_name="event_display",
+                    make_fixed_size=fixed_size,
+                    min_tps_to_create_img=min_tps,
+                    height=height*3,
+                    only_collection=False,
+                    y_margin=y_margin)
+
 print("Done!")
+exit()
 if cluster_event_display:
     print("Creating images for each cluster...")
     for i, cluster in enumerate(clusters):
