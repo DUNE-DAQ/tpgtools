@@ -431,7 +431,7 @@ def create_event_display(tps_to_draw, channel_map, min_tps_to_create_img, output
     print ("Creating X plane images...")
     tps_x = tps_to_draw[np.where(channel_map[tps_to_draw['channel']% total_channels, 1] == 2)]
     if tps_x.shape[0] >= min_tps_to_create_img:
-        img_x = create_event_display_one_view(tps_x, channel_map=channel_map, make_fixed_size=make_fixed_size, height=height, y_min_overall=y_min_overall, y_max_overall=y_max_overall, view=2)
+        img_x = create_event_display_one_view(tps_x, channel_map=channel_map, make_fixed_size=make_fixed_size, height=height, y_min_overall=y_min_overall, y_max_overall=y_max_overall, view=2, y_margin=y_margin)
     if only_collection:
         print (" ")
         return img_u, img_v, img_x # calling here to avoid wasting execution time. U and V will be empty
@@ -440,13 +440,13 @@ def create_event_display(tps_to_draw, channel_map, min_tps_to_create_img, output
     print ("Creating U plane images...")
     tps_u = tps_to_draw[np.where(channel_map[tps_to_draw['channel']% total_channels, 1] == 0)]
     if tps_u.shape[0] >= min_tps_to_create_img:
-        img_u = create_event_display_one_view(tps_u, channel_map=channel_map, make_fixed_size=make_fixed_size, height=height, y_min_overall=y_min_overall, y_max_overall=y_max_overall, view=0)
+        img_u = create_event_display_one_view(tps_u, channel_map=channel_map, make_fixed_size=make_fixed_size, height=height, y_min_overall=y_min_overall, y_max_overall=y_max_overall, view=0, y_margin=y_margin)
     
     # V plane, take only the tps where the corrisponding position in the channel map is 1
     print ("Creating V plane images...")
     tps_v = tps_to_draw[np.where(channel_map[tps_to_draw['channel']% total_channels, 1] == 1)]
     if tps_v.shape[0] >= min_tps_to_create_img: 
-        img_v = create_event_display_one_view(tps_v, channel_map=channel_map, make_fixed_size=make_fixed_size, height=height, y_min_overall=y_min_overall, y_max_overall=y_max_overall, view=1)
+        img_v = create_event_display_one_view(tps_v, channel_map=channel_map, make_fixed_size=make_fixed_size, height=height, y_min_overall=y_min_overall, y_max_overall=y_max_overall, view=1, y_margin=y_margin)
     
     print (" ")
     return img_u, img_v, img_x
@@ -557,7 +557,7 @@ def save_single_event_display(tps_to_draw, channel_map, min_tps_to_create_img, o
             y_margin = (img_height - y_range)/2
     else:
         img_height =  y_range + 2*y_margin
-    yticks_labels = [t_start-y_margin + i*(y_range + 2*y_margin)//10 for i in range(10)]
+    yticks_labels = [t_start-int(y_margin) + i*(y_range + int(2*y_margin))//10 for i in range(10)]
 
     n_views = 0
     xticks_labels_u = []
