@@ -76,8 +76,9 @@ for tpFile_path in args.files:
         print("TPs list: ", this_tps_list)
     
     tps_lists.append(this_tps_list)
-    
-print ("Number of TPs lists: ", len(tps_lists))
+
+for i in range(len(tps_lists)):
+    print ("Number of TPs in list ", i, " : ", len(tps_lists[i]))
 
 print (tps_lists[0][0]['channel'])
 
@@ -108,8 +109,10 @@ for view in args.view:
         print ("View not recognized, please choose from U, V, X or allViews (default)")
         sys.exit(1)  
     
+    print ("Number of channels to plot: ", len(channels_to_plot))
     
-    # print ("Plotting channels: ", channels_to_plot)
+    if args.verbose:
+        print ("Plotting channels: ", channels_to_plot)
     
     # Select TPs to plot basing on the selected view and channel map
     # create a new list of lists of TPs, keeping only the TPs that are in the selected view
@@ -120,9 +123,11 @@ for view in args.view:
             print ("Number of TPs in this list: ", len(tps_list))
         this_tps_to_plot = []
         for tp in tps_list:
-            if tp['channel'] in channels_to_plot:
+            if tp['channel']%(len(this_channel_map[0])) in channels_to_plot:
                 this_tps_to_plot.append(tp)
+        print ("Number of TPs to plot in this file: ", len(this_tps_to_plot))
         tps_to_plot.append(this_tps_to_plot)
+        
     
     print("Plotting time peak...")
     if args.time_peak:
