@@ -23,6 +23,7 @@ def create_channel_map_array(which_channel_map="APA"):
     :return: channel map array
     '''
     # create the channel map array
+    channel_map = [] # create empty object for older python versions that can't handle in-scope declaration
     if which_channel_map == "APA":
         channel_map = np.empty((2560, 2), dtype=int)
         channel_map[:, 0] = np.linspace(0, 2559, 2560, dtype=int)
