@@ -42,6 +42,14 @@ def plotTimePeak(tps_lists, file_names, superimpose=False, quantile=1, y_min=0, 
     for tps_file in tps_lists:
         time_peak_all_files += [tp['time_peak'] - tp['time_start'] for tp in tps_file]
     x_max = np.quantile(time_peak_all_files, quantile)
+    # print (f"  Quantile {quantile} of time_peak is {x_max}, set as x_max")
+    binsize = x_max/20 # could be handled in a smarter way, TODO
+    
+    # this is in case, for testing, time_start and time_peak are always the same
+    if x_max == 0:
+        print ("  All time_peak values are the same, setting x_max to 1")
+        x_max = 1
+        binsize = 1
     
     del time_peak_all_files # free memory
 
@@ -73,7 +81,7 @@ def plotTimePeak(tps_lists, file_names, superimpose=False, quantile=1, y_min=0, 
             fig.set_ylim(top=y_max)
  
         # bin size is optimized to have a number of bins depending on x_max, thus based on the quantile
-        fig.hist(time_peak, bins=np.arange(-0.5, x_max + 0.5, 10), label=label, alpha=alpha, edgecolor='black')
+        fig.hist(time_peak, bins=np.arange(-0.5, x_max + 0.5, binsize), label=label, alpha=alpha, edgecolor='black')
 
         if not superimpose:
             fig.set_title(f"Time Peak, file {this_filename}", fontweight='bold')
