@@ -92,6 +92,8 @@ python plot_tp_properties.py --help
 Here an example of usage. `--all` is used to plot all the properties, but you can also choose to plot only one or some of them.
 ```sh
 python plot_tp_properties.py -f INPUT_TPSTREAM.hdf5 INPUT_TPS.txt -n 1000 -e my/output/folder/ --superimpose --all --view U V X --channel-map CRP
+python3.10 plot_tp_properties.py -f INPUT_TPSTREAM.hdf5 INPUT_TPS.txt  -e ./ --superimpose --all  --channel-map FiftyLChannelMap
+python3.10 plot_tp_properties.py -f INPUT_TPSTREAM.hdf5 INPUT_TPS.txt  -e ./ --superimpose --all --view U V X --channel-map FiftyLChannelMap
 ```
 
 

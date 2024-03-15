@@ -32,7 +32,7 @@ def create_channel_map_array(which_channel_map="APA"):
         channel_map = np.empty((3072, 2), dtype=int)
         channel_map[:, 0] = np.linspace(0, 3071, 3072, dtype=int)
         channel_map[:, 1] = np.concatenate((np.zeros(952), np.ones(952), np.ones(1168)*2))
-    elif which_channel_map == "50L":
+    elif which_channel_map == "FiftyLChannelMap":
         channel_map = np.empty((128, 2), dtype=int)
         channel_map[:, 0] = np.linspace(0, 127, 128, dtype=int)
         # channel_map[:, 1] = np.concatenate(np.ones(49)*2, np.zeros(39), np.ones(40))
