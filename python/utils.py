@@ -37,6 +37,10 @@ def create_channel_map_array(which_channel_map="APA"):
         channel_map[:, 0] = np.linspace(0, 127, 128, dtype=int)
         # channel_map[:, 1] = np.concatenate(np.ones(49)*2, np.zeros(39), np.ones(40))
         channel_map[:, 1] = np.concatenate((np.zeros(39), np.ones(40), np.ones(49)*2))
+    else:
+        print(" WARNING: Unsupported channel map:", which_channel_map)
+        print(" It is likely that the app you're running will fail")
+        return None
     return channel_map
 
 
