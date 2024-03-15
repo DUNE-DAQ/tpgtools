@@ -17,11 +17,22 @@ from hdf5_converter import convert_tpstream_to_numpy
 alpha = 0.4 # transparency of the histograms, lower is more opaque
 grid_in_superimpose = False
 grid_in_not_superimpose = False
+separate_views= True # this creates three separate plots (U, V, X)
 image_format='.png'
 legend_properties = {'weight': 'bold', 'size': 'small'}
 
 
-def plotTimePeak(tps_lists, file_names, superimpose=False, quantile=1, y_min=0, y_max=None, output_folder=None, show=False):
+def plotTimePeak(tps_lists, file_names, superimpose=False, quantile=1, y_min=0, y_max=None, output_folder=None, output_suffix="", show=False):
+    
+    # stop this function if tps_lists is empty
+    if len(tps_lists) == 0:
+        print("No TPs found, exiting")
+        return
+    
+    # stop if all elements in tps_lists are empty
+    if all([len(tps_list) == 0 for tps_list in tps_lists]):
+        print("No TPs found, exiting")
+        return
     
     plt.figure()
     fig = plt.subplot(111)  # for when superimpose is true
@@ -31,10 +42,23 @@ def plotTimePeak(tps_lists, file_names, superimpose=False, quantile=1, y_min=0, 
     for tps_file in tps_lists:
         time_peak_all_files += [tp['time_peak'] - tp['time_start'] for tp in tps_file]
     x_max = np.quantile(time_peak_all_files, quantile)
+    # print (f"  Quantile {quantile} of time_peak is {x_max}, set as x_max")
+    binsize = x_max/20 # could be handled in a smarter way, TODO
+    
+    # this is in case, for testing, time_start and time_peak are always the same
+    if x_max == 0:
+        print ("  All time_peak values are the same, setting x_max to 1")
+        x_max = 1
+        binsize = 1
     
     del time_peak_all_files # free memory
 
     for i, tps_file in enumerate(tps_lists):
+        
+        # if tps_file is empty, skip this file
+        if len(tps_file) == 0:
+            print (f"No TPs passed to the plotting function from {file_names[i]}, skipping")
+            continue
         
         time_peak = []
         for tp in tps_file:
@@ -57,27 +81,37 @@ def plotTimePeak(tps_lists, file_names, superimpose=False, quantile=1, y_min=0, 
             fig.set_ylim(top=y_max)
  
         # bin size is optimized to have a number of bins depending on x_max, thus based on the quantile
-        fig.hist(time_peak, bins=np.arange(-0.5, x_max + 0.5, 10), label=label, alpha=alpha, edgecolor='black')
+        fig.hist(time_peak, bins=np.arange(-0.5, x_max + 0.5, binsize), label=label, alpha=alpha, edgecolor='black')
 
         if not superimpose:
             fig.set_title(f"Time Peak, file {this_filename}", fontweight='bold')
             if show:
                 plt.show()
-            plt.savefig(f"{output_folder}{this_filename}_timePeak{image_format}")
+            plt.savefig(f"{output_folder}{this_filename}_timePeak_{output_suffix}{image_format}")
 
     if superimpose:
         fig.legend(prop=legend_properties)
         plt.grid(grid_in_superimpose)
         if show:
             plt.show()
-        plt.savefig(f"{output_folder}timePeak{image_format}")
+        plt.savefig(f"{output_folder}superimposed_timePeak_{output_suffix}{image_format}")
         
     del time_peak # free memory
 
     return
 
 
-def plotTimeOverThreshold(tps_lists, file_names, superimpose=False, quantile=1, y_min=0, y_max=None, output_folder=None, show=False):
+def plotTimeOverThreshold(tps_lists, file_names, superimpose=False, quantile=1, y_min=0, y_max=None, output_folder=None, output_suffix="", show=False):
+    
+    # stop this function if tps_lists is empty
+    if len(tps_lists) == 0:
+        print("No TPs found, exiting")
+        return
+    
+    # stop if all elements in tps_lists are empty
+    if all([len(tps_list) == 0 for tps_list in tps_lists]):
+        print("No TPs found, exiting")
+        return
     
     plt.figure()
     fig = plt.subplot(111)  # for when superimpose is true
@@ -91,6 +125,11 @@ def plotTimeOverThreshold(tps_lists, file_names, superimpose=False, quantile=1, 
     del time_over_threshold_all_files # free memory
 
     for i, tps_file in enumerate(tps_lists):
+        
+        if len(tps_file) == 0:
+            print (f"No TPs passed to the plotting function from {file_names[i]}, skipping")
+            continue
+        
         time_over_threshold = [tp['time_over_threshold'] for tp in tps_file]
         this_filename = file_names[i].split('/')[-1]
      
@@ -114,14 +153,14 @@ def plotTimeOverThreshold(tps_lists, file_names, superimpose=False, quantile=1, 
             fig.set_title(f"Time over Threshold, file {this_filename}", fontweight='bold')
             if show:
                 plt.show()
-            plt.savefig(f"{output_folder}{this_filename}_timeOverThreshold{image_format}")
+            plt.savefig(f"{output_folder}{this_filename}_timeOverThreshold_{output_suffix}{image_format}")
 
     if superimpose:
         fig.legend(prop=legend_properties)
         plt.grid(grid_in_superimpose)
         if show:
             plt.show()
-        plt.savefig(f"{output_folder}timeOverThreshold{image_format}")
+        plt.savefig(f"{output_folder}superimposed_timeOverThreshold_{output_suffix}{image_format}")
         
     # free memory
     del time_over_threshold
@@ -129,8 +168,18 @@ def plotTimeOverThreshold(tps_lists, file_names, superimpose=False, quantile=1, 
     return
 
 
-def plotChannel(tps_lists, file_names, superimpose=False, x_min=0, x_max=None, y_min=0, y_max=None, output_folder=None, show=False):
+def plotChannel(tps_lists, file_names, superimpose=False, x_min=0, x_max=None, y_min=0, y_max=None, output_folder=None, output_suffix="", show=False):
+
+    # stop this function if tps_lists is empty
+    if len(tps_lists) == 0:
+        print("No TPs found, exiting")
+        return
     
+    # stop if all elements in tps_lists are empty
+    if all([len(tps_list) == 0 for tps_list in tps_lists]):
+        print("No TPs found, exiting")
+        return
+       
     plt.figure()
     fig = plt.subplot(111)  # for when superimpose is true
     
@@ -139,6 +188,11 @@ def plotChannel(tps_lists, file_names, superimpose=False, x_min=0, x_max=None, y
         channel_all_files += [tp['channel'] for tp in tps_file] 
 
     for i, tps_file in enumerate(tps_lists):
+        
+        if len(tps_file) == 0:
+            print (f"No TPs passed to the plotting function from {file_names[i]}, skipping")
+            continue
+        
         channel = [tp['channel'] for tp in tps_file]
         this_filename = file_names[i].split('/')[-1]
      
@@ -168,14 +222,14 @@ def plotChannel(tps_lists, file_names, superimpose=False, x_min=0, x_max=None, y
             fig.set_title(f"Channel, file {this_filename}", fontweight='bold')
             if show:
                 plt.show()
-            plt.savefig(f"{output_folder}{this_filename}_channel{image_format}")
+            plt.savefig(f"{output_folder}{this_filename}_channel_{output_suffix}{image_format}")
             
     if superimpose:
         fig.legend(prop=legend_properties)
         plt.grid(grid_in_superimpose)
         if show:
             plt.show()
-        plt.savefig(f"{output_folder}channel{image_format}")
+        plt.savefig(f"{output_folder}superimposed_channel_{output_suffix}{image_format}")
     
     del channel_all_files # free memory
     del channel # free memory
@@ -183,7 +237,17 @@ def plotChannel(tps_lists, file_names, superimpose=False, x_min=0, x_max=None, y
     return            
 
 
-def plotADCIntegral(tps_lists, file_names, superimpose=False, quantile=1, y_min=0, y_max=None, output_folder=None, show=False):
+def plotADCIntegral(tps_lists, file_names, superimpose=False, quantile=1, y_min=0, y_max=None, output_folder=None, output_suffix="", show=False):
+    
+    # stop this function if tps_lists is empty
+    if len(tps_lists) == 0:
+        print("No TPs found, exiting")
+        return
+        
+    # stop if all elements in tps_lists are empty
+    if all([len(tps_list) == 0 for tps_list in tps_lists]):
+        print("No TPs found, exiting")
+        return
     
     plt.figure()
     fig = plt.subplot(111)  # for when superimpose is true
@@ -198,6 +262,11 @@ def plotADCIntegral(tps_lists, file_names, superimpose=False, quantile=1, y_min=
     del adc_integral_all_files # free memory
 
     for i, tps_file in enumerate(tps_lists):
+        
+        if len(tps_file) == 0:
+            print (f"No TPs passed to the plotting function from {file_names[i]}, skipping")
+            continue
+        
         adc_integral = [tp['adc_integral'] for tp in tps_file]
         this_filename = file_names[i].split('/')[-1]
      
@@ -222,14 +291,14 @@ def plotADCIntegral(tps_lists, file_names, superimpose=False, quantile=1, y_min=
             fig.set_title(f"ADC Integral, file {this_filename}", fontweight='bold')
             if show:
                 plt.show()
-            plt.savefig(f"{output_folder}{this_filename}_adcIntegral{image_format}")
+            plt.savefig(f"{output_folder}{this_filename}_adcIntegral_{output_suffix}{image_format}")
             
     if superimpose:
         fig.legend(prop=legend_properties)
         plt.grid(grid_in_superimpose)
         if show:
             plt.show()
-        plt.savefig(f"{output_folder}adcIntegral{image_format}")
+        plt.savefig(f"{output_folder}superimposed_adcIntegral_{output_suffix}{image_format}")
         
     
     del adc_integral # free memory
@@ -237,8 +306,18 @@ def plotADCIntegral(tps_lists, file_names, superimpose=False, quantile=1, y_min=
     return
 
 
-def plotADCPeak(tps_lists, file_names, superimpose=False, quantile=1, y_min=0, y_max=None, output_folder=None, show=False):
+def plotADCPeak(tps_lists, file_names, superimpose=False, quantile=1, y_min=0, y_max=None, output_folder=None, output_suffix="", show=False):
     
+    # stop this function if tps_lists is empty
+    if len(tps_lists) == 0:
+        print("No TPs found, exiting")
+        return
+
+    # stop if all elements in tps_lists are empty
+    if all([len(tps_list) == 0 for tps_list in tps_lists]):
+        print("No TPs found, exiting")
+        return
+        
     plt.figure()
     fig = plt.subplot(111)  # for when superimpose is true
     
@@ -251,6 +330,11 @@ def plotADCPeak(tps_lists, file_names, superimpose=False, quantile=1, y_min=0, y
     del adc_peak_all_files # free memory
 
     for i, tps_file in enumerate(tps_lists):
+        
+        if len(tps_file) == 0:
+            print (f"No TPs passed to the plotting function from {file_names[i]}, skipping")
+            continue
+        
         adc_peak = [tp['adc_peak'] for tp in tps_file]
         this_filename = file_names[i].split('/')[-1]
      
@@ -274,20 +358,30 @@ def plotADCPeak(tps_lists, file_names, superimpose=False, quantile=1, y_min=0, y
             fig.set_title(f"ADC Peak, file {this_filename}", fontweight='bold')
             if show:
                 plt.show()
-            plt.savefig(f"{output_folder}{this_filename}_adcPeak{image_format}")
+            plt.savefig(f"{output_folder}{this_filename}_adcPeak_{output_suffix}{image_format}")
             
     if superimpose:
         fig.legend(prop=legend_properties)
         plt.grid(grid_in_superimpose)
         if show:
             plt.show()
-        plt.savefig(f"{output_folder}adcPeak{image_format}")
+        plt.savefig(f"{output_folder}superimposed_adcPeak_{output_suffix}{image_format}")
         
     return
 
 
-def plotDetId(tps_lists, file_names, superimpose=False, y_min=0, y_max=None, output_folder=None, show=False):
+def plotDetId(tps_lists, file_names, superimpose=False, y_min=0, y_max=None, output_folder=None, output_suffix="", show=False):
+
+    # stop this function if tps_lists is empty
+    if len(tps_lists) == 0:
+        print("No TPs found, exiting")
+        return
     
+    # stop if all elements in tps_lists are empty
+    if all([len(tps_list) == 0 for tps_list in tps_lists]):
+        print("No TPs found, exiting")
+        return
+        
     plt.figure()
     fig = plt.subplot(111)  # for when superimpose is true
     
@@ -300,6 +394,11 @@ def plotDetId(tps_lists, file_names, superimpose=False, y_min=0, y_max=None, out
     del detid_all_files # free memory
 
     for i, tps_file in enumerate(tps_lists):
+        
+        if len(tps_file) == 0:
+            print (f"No TPs passed to the plotting function from {file_names[i]}, skipping")
+            continue
+        
         detid = [tp['detid'] for tp in tps_file]
         this_filename = file_names[i].split('/')[-1]
      
@@ -322,14 +421,14 @@ def plotDetId(tps_lists, file_names, superimpose=False, y_min=0, y_max=None, out
         
         if not superimpose:
             fig.set_title(f"DetId, file {this_filename}", fontweight='bold')
-            plt.savefig(f"{output_folder}{this_filename}_detid{image_format}")
+            plt.savefig(f"{output_folder}{this_filename}_detid_{output_suffix}{image_format}")
             if show:
                 plt.show()
             
     if superimpose:
         fig.legend(prop=legend_properties)
         plt.grid(grid_in_superimpose)
-        plt.savefig(f"{output_folder}detid{image_format}")
+        plt.savefig(f"{output_folder}superimposed_detid_{output_suffix}{image_format}")
         if show:
             plt.show()
         

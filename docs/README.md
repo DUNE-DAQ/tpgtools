@@ -91,7 +91,9 @@ python plot_tp_properties.py --help
 
 Here an example of usage. `--all` is used to plot all the properties, but you can also choose to plot only one or some of them.
 ```sh
-python plot_tp_properties.py -f INPUT_TPSTREAM.hdf5 INPUT_TPS.txt -n 1000 -e my/output/folder/ --superimpose --all
+python plot_tp_properties.py -f INPUT_TPSTREAM.hdf5 INPUT_TPS.txt -n 1000 -e my/output/folder/ --superimpose --all --view U V X --channel-map CRP
+python3.10 plot_tp_properties.py -f INPUT_TPSTREAM.hdf5 INPUT_TPS.txt  -e ./ --superimpose --all  --channel-map FiftyLChannelMap
+python3.10 plot_tp_properties.py -f INPUT_TPSTREAM.hdf5 INPUT_TPS.txt  -e ./ --superimpose --all --view U V X --channel-map FiftyLChannelMap
 ```
 
 
@@ -121,9 +123,9 @@ The version of the DUNE-DAQ software can also be a different one than `v4.2.0`.
 #### Setup matplotlib on lxplus or NP04 machines (e.g. `np04-srv-019`)
 To use the `matplotlib` python module run the following command on a console where the DUNE-DAQ software area has not been sourced:
 ```sh
-export PREFIX_PATH=$HOME
+export PREFIX_PATH=/your/chosen/path/matplotlib/
 pip install --prefix=$PREFIX_PATH matplotlib
-export PYTHONPATH=$HOME/lib/python3.10/site-packages/:$PYTHONPATH
+export PYTHONPATH=$PREFIX_PATH/lib/python3.10/site-packages/:$PYTHONPATH
 ```
 
 
