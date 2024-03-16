@@ -120,8 +120,9 @@ struct PattgenInfo
 		, int num_frames_
 		, std::string pattern_name_
                 , uint64_t first_timestamp_
-                , int time_tick_offset_
+                , int clock_tick_offset_
 		, std::string out_prefix_
+		, std::string path_output_
                 , int input_ch_
 		, int tpg_threshold_
                 , int iframe_
@@ -132,8 +133,9 @@ struct PattgenInfo
   , num_frames(num_frames_)
   , pattern_name(pattern_name_)
   , first_timestamp(first_timestamp_)
-  , time_tick_offset(time_tick_offset_)
+  , clock_tick_offset(clock_tick_offset_)
   , out_prefix(out_prefix_)
+  , path_output(path_output_)
   , input_ch(input_ch_)
   , tpg_threshold(tpg_threshold_)
   , iframe(iframe_)
@@ -144,8 +146,9 @@ struct PattgenInfo
   int num_frames;
   std::string pattern_name;
   uint64_t first_timestamp;
-  int time_tick_offset;
+  int clock_tick_offset;
   std::string out_prefix;
+  std::string path_output;
   int input_ch;
   int tpg_threshold;
   int iframe;
@@ -164,6 +167,7 @@ class PattgenHandler {
 		    , "patt_golden"
 		    , 0
                     , 0
+		    , ""
 		    , ""
                     , 0
 		    , 0
@@ -199,6 +203,8 @@ struct PattgenAlgs
   static void pattgen_function_square_left(PattgenInfo& info);
   static void pattgen_function_square_right(PattgenInfo& info);
 
+  void check_header(PattgenInfo& info);
+   
   void init() {
     tpgpg_map["patt_golden"] = &pattgen_function_golden;
     tpgpg_map["patt_pulse"] = &pattgen_function_pulse;
@@ -207,11 +213,48 @@ struct PattgenAlgs
     tpgpg_map["patt_square_right"] = &pattgen_function_square_right;
   } 
 
-  void run_algorithm(std::string& alg_name, PattgenInfo& info) {
-    tpgpg_map[alg_name](info);
+  void run_algorithm(PattgenInfo& info) {
+    tpgpg_map[info.pattern_name](info);
   }
 };
-	
+
+// header validation 
+void
+PattgenAlgs::check_header(PattgenInfo& info)
+{
+  uint64_t timestamp = info.output_frame->get_timestamp();
+  uint64_t expected_timestamp = info.first_timestamp + info.iframe*2048;
+  if (info.iframe>0 && timestamp != expected_timestamp) {
+    if (info.verbose) {
+      TLOG() << " |______ TIMESTAMP WILL BE OVERWRITTEN! OLD: " << timestamp << ", NEW: " << expected_timestamp;
+    }
+    info.output_frame->set_timestamp(expected_timestamp);
+  }
+  // for offline channel map, avoid error e.g. Invalid stream number 176
+  if (info.overwrite_wibeth_header) {
+    if (info.verbose) {
+       TLOG() << "CRATE " << info.output_frame->daq_header.crate_id; 
+       TLOG() << "SLOT " << info.output_frame->daq_header.slot_id; 
+       TLOG() << "STREAM " << info.output_frame->daq_header.stream_id; 
+    }
+    //if crate number looks wrong 
+    if (info.output_frame->daq_header.crate_id != 6) {
+      if (info.verbose) TLOG() << " |______ CRATE-ID WILL BE OVERWRITTEN! OLD: " << info.output_frame->daq_header.crate_id << ", NEW: " << 6;
+      info.output_frame->daq_header.crate_id = 6;
+    }
+    //if slot number looks wrong
+    if (info.output_frame->daq_header.slot_id != 0) {
+      if (info.verbose) TLOG() << " |______ SLOT-ID WILL BE OVERWRITTEN! OLD: " << info.output_frame->daq_header.slot_id << ", NEW: " << 0;
+      info.output_frame->daq_header.slot_id = 0;
+    }
+    //if stream number looks wrong (not 0,1,2,3 or 64,65,66,67)
+    if (info.output_frame->daq_header.stream_id != 0) {
+      if (info.verbose) TLOG() << " |______ STREAM-ID WILL BE OVERWRITTEN! OLD: " << info.output_frame->daq_header.stream_id << ", NEW: " << 0;
+      info.output_frame->daq_header.stream_id = 0;
+    }
+  }
+}
+
 // one global and two smaller peaks
 void
 PattgenAlgs::pattgen_function_golden(PattgenInfo& info) 
@@ -220,12 +263,12 @@ PattgenAlgs::pattgen_function_golden(PattgenInfo& info)
 
   int patt_time[9]{0};
   int patt_adc[9]{500, 502, 504, 505, 506, 505, 504, 502, 500};
-  patt_time[0] = info.time_tick_offset;
-  TLOG() << "DBG pattgen info, time tick offset: " << info.time_tick_offset;
+  patt_time[0] = info.clock_tick_offset;
+  TLOG() << "pattgen info, time tick offset: " << info.clock_tick_offset;
 
   int npatt = sizeof(patt_time) / sizeof(*patt_time);
   for (int ipatt=1; ipatt<npatt; ipatt++) {
-    patt_time[ipatt] = info.time_tick_offset+ipatt < 64 ? info.time_tick_offset+ipatt : info.time_tick_offset-64+ipatt;
+    patt_time[ipatt] = info.clock_tick_offset+ipatt < 64 ? info.clock_tick_offset+ipatt : info.clock_tick_offset-64+ipatt;
   }
 
   for (int itime=0; itime<64; ++itime) {
@@ -341,6 +384,7 @@ PattgenAlgs::pattgen_function_square_right(PattgenInfo& info) {
 void 
 execute_tpgpg(PattgenInfo& info, PattgenAlgs& pa) 
 {
+  /*
   // Parse the WIBEth frames
   uint64_t timestamp = info.output_frame->get_timestamp();
   uint64_t expected_timestamp = info.first_timestamp + info.iframe*2048;
@@ -373,8 +417,9 @@ execute_tpgpg(PattgenInfo& info, PattgenAlgs& pa)
       info.output_frame->daq_header.stream_id = 0;
     }
   }
-
-  pa.run_algorithm(info.pattern_name, info);
+  */
+  pa.check_header(info);
+  pa.run_algorithm(info);
 }
 
 // =================================================================
@@ -471,10 +516,10 @@ execute_tpgpg_validation(PattgenInfo& info)
 {
   // 1. pedestal subtraction
   dunedaq::fddetdataformats::WIBEthFrame* output_frame_pedsub; 
-  FrameFile input_file_fake = FrameFile((info.out_prefix+"_wibeth_output.bin").c_str()); 
+  FrameFile input_file_fake = FrameFile((info.path_output+"/"+info.out_prefix+"_wibeth_output.bin").c_str()); 
 
   std::fstream output_file_pedsub;
-  output_file_pedsub.open(info.out_prefix+"_wibeth_output_pedsub.bin", std::ios::app | std::ios::binary);
+  output_file_pedsub.open(info.path_output+"/"+info.out_prefix+"_wibeth_output_pedsub.bin", std::ios::app | std::ios::binary);
   int16_t median_ssr[64] = { 0 };
   int16_t accum_ssr[64] = { 0 };
   int16_t median = 0;
@@ -511,11 +556,11 @@ execute_tpgpg_validation(PattgenInfo& info)
 
   // 2. standalone hit finding
   dunedaq::fddetdataformats::WIBEthFrame* input_frame_pedsub; 
-  std::string input_file_name = info.out_prefix+"_wibeth_output.bin";
+  std::string input_file_name = info.path_output+"/"+info.out_prefix+"_wibeth_output.bin";
 
-  std::string file_name_hits = info.out_prefix+"_wibeth_output_hits.txt";
-  input_file_name = info.out_prefix+"_wibeth_output_pedsub.bin";
-  file_name_hits = info.out_prefix+"_wibeth_output_pedsub_hits.txt";
+  std::string file_name_hits = info.path_output+"/"+info.out_prefix+"_wibeth_output_hits.txt";
+  input_file_name = info.path_output+"/"+info.out_prefix+"_wibeth_output_pedsub.bin";
+  file_name_hits = info.path_output+"/"+info.out_prefix+"_wibeth_output_pedsub_hits.txt";
 
   FrameFile input_file_pedsub = FrameFile(input_file_name.c_str()); 
 
