@@ -46,11 +46,11 @@ def get_channel(request):
 def get_tick(request):
   yield request.param
 
-@pytest.fixture(params=["64"])
+@pytest.fixture(params=["10","64","499"])
 def get_threshold(request):
   yield request.param
 
-@pytest.fixture(params=["2"])
+@pytest.fixture(params=["1","2"])
 def get_frames(request):
   yield request.param
 
@@ -72,11 +72,11 @@ def get_input(tmp_dir_path,get_pattern,get_channel,get_tick,get_threshold,get_fr
   num_frames = get_frames
   print("\nDBG start cmdopt : ", cmdopt)
   if cmdopt == "more":
-    print("DBG start tick : ", tick)
-    print("DBG start pattern : ", pattern)
-    print("DBG start channel : ", channel)
-    print("DBG start threshold : ", threshold)
-    print("DBG start number of frames : ", num_frames)
+    print("DBG start tick: ", tick)
+    print("DBG start pattern: ", pattern)
+    print("DBG start channel: ", channel)
+    print("DBG start threshold: ", threshold)
+    print("DBG start number of frames: ", num_frames)
 
   str_path = os.path.join(*[tmp_dir_path,pattern,"chan_"+channel,"tick_"+tick])
   path = Path(str_path) 
@@ -98,7 +98,7 @@ def get_input(tmp_dir_path,get_pattern,get_channel,get_tick,get_threshold,get_fr
   if cmdopt == "more":
     print("\nDBG command: ", cmd)
 
-  output_frame_file = os.path.join(*[str_path,pattern+"_chan_"+channel+"_tick_"+tick+"_wibeth_output_pedsub.bin"])
+  output_frame_file = os.path.join(*[str_path,pattern+"_chan_"+channel+"_tick_"+tick+"_wibeth_output.bin"])
   if not os.path.exists(output_frame_file):
     fp = path / str("log_pattgen__" + tick + ".txt");
     f = open(str(fp), "w")
@@ -119,9 +119,9 @@ def test_all_params(get_input, alg):
 
   if cmdopt == "more":
     print("\nDBG finish pattern: ", pattern)
-    print("\nDBG finish channel: ", channel)
-    print("\nDBG finish tick: ", tick)
-    print("\nDBG finish threshold: ", threshold)
+    print("DBG finish channel: ", channel)
+    print("DBG finish tick: ", tick)
+    print("DBG finish threshold: ", threshold)
     print("DBG finish num_frames: ", num_frames)
     print("DBG finish path: ", path)
     print("DBG finish str_path: ", str_path)
