@@ -241,7 +241,7 @@ pytest -k "test_all_params\patt_golden-0-1-64-2-SimpleThreshold]" tests
 pytest --printout=more -k "test_all_params\[patt_golden-0-1-64-2-AbsRS]" tests
 ```
 
-This test gives immediate feedback as to whether the test passed or failed. The output from the test is stored in the local machine directory, naed `/tmp/pytest-of-<user>`. 
+This test gives immediate feedback as to whether the test passed or failed. The output from the test is stored in the local machine directory, named `/tmp/pytest-of-<user>`. 
 
 #### Example to run the default test bundle 
 ```sh
