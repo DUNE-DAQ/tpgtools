@@ -203,7 +203,7 @@ The pytest framework is used to streamline the validation process and to create 
 One of the standard type of tests performed during TPG algorithm development is the comparison of the NAIVE and AVX implementation of the algorithm under study. However, existing algorithms should also be tested regularly to ensure readout and other code changes do not break the TPG functionality. 
 
 The integration of `pytest` in the tpgtools repositor has the following directory structure:
-```
+```sh
 tpgtools/
 pytest.ini
 conftest.py
@@ -212,43 +212,43 @@ tests/
     test_tpg_implementation.py
 scripts/
 test_tpg_implementation_bundle.sh
-```sh
-
-The parameters being tested are provided and ordered as follows: 
 ```
-\[<pattern_name>-<channel_number>-<clock_tick>-<threshold>-<algorithm>\] e.g. \[patt_golden-0-1-64-2-SimpleThreshold\]
+
+The tested parameters are provided on the command line in the following order (separated with a dash): 
+```sh
+pattern_name-channel_number-clock_tick-threshold-algorithm e.g. patt_golden-0-1-64-2-SimpleThreshold
 where
     pattern_name   = patt_golden, patt_square, patt_square_left, patt_square_right
-    channel_number = \[0, 63\]
-    clock_tick     = \[1, 63\]
+    channel_number = [0, 63]
+    clock_tick     = [1, 63]
     threshold      = 10, 64, 499
     algorithm      = SimpleThreshold, AbsRS
-```sh
+```
 
 To run the full suite of tests use:
-```
+```sh
 addopts = --quiet -ra  (in pytest.ini)
 pytest -k "test_tuple_params" tests
-```sh
+```
 As the `pytest` script currently scans/tests all parameters sequentially, it takes too long to complete the test job. Therefore the parameters are provided explicitly in order to run only a subset of all tests. The examples below show how to start a test from the command line or to run the default subset of tests.
 
 
 #### Example to run a single test
-```
+```sh
 cd sourcecode/tpgtools
 export PYTEST_DISABLE_PLUGIN_AUTOLOAD=1
-pytest -k "test_all_params\patt_golden-0-1-64-2-SimpleThreshold\]" tests
-pytest --printout=more -k "test_all_params\[patt_golden-0-1-64-2-AbsRS\]" tests
-```sh
+pytest -k "test_all_params\patt_golden-0-1-64-2-SimpleThreshold]" tests
+pytest --printout=more -k "test_all_params\[patt_golden-0-1-64-2-AbsRS]" tests
+```
 
 This test gives immediate feedback as to whether the test passed or failed. The output from the test is stored in the local machine directory, naed `/tmp/pytest-of-<user>`. 
 
 #### Example to run the default test bundle 
-```
+```sh
 cd sourcecode/tpgtools/scripts
 export PYTEST_DISABLE_PLUGIN_AUTOLOAD=1
 ./test_tpg_implementation_bundle.sh -d | tee pytest_log.txt
-```sh
+```
 
 This test takes a few minutes to complete and provides a reasonable coverage of the parameters. 
 
