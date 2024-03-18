@@ -216,11 +216,11 @@ test_tpg_implementation_bundle.sh
 
 The parameters being tested are provided and ordered as follows: 
 ```
-[<pattern_name>-<channel_number>-<clock_tick>-<threshold>-<algorithm>] e.g. [patt_golden-0-1-64-2-SimpleThreshold]
+\[<pattern_name>-<channel_number>-<clock_tick>-<threshold>-<algorithm>\] e.g. \[patt_golden-0-1-64-2-SimpleThreshold\]
 where
     pattern_name   = patt_golden, patt_square, patt_square_left, patt_square_right
-    channel_number = [0, 63]
-    clock_tick     = [1, 63]
+    channel_number = \[0, 63\]
+    clock_tick     = \[1, 63\]
     threshold      = 10, 64, 499
     algorithm      = SimpleThreshold, AbsRS
 ```sh
@@ -237,8 +237,8 @@ As the `pytest` script currently scans/tests all parameters sequentially, it tak
 ```
 cd sourcecode/tpgtools
 export PYTEST_DISABLE_PLUGIN_AUTOLOAD=1
-pytest -k "test_all_params[patt_golden-0-1-64-2-SimpleThreshold]" tests
-pytest --printout=more -k "test_all_params[patt_golden-0-1-64-2-AbsRS]" tests
+pytest -k "test_all_params\patt_golden-0-1-64-2-SimpleThreshold\]" tests
+pytest --printout=more -k "test_all_params\[patt_golden-0-1-64-2-AbsRS\]" tests
 ```sh
 
 This test gives immediate feedback as to whether the test passed or failed. The output from the test is stored in the local machine directory, naed `/tmp/pytest-of-<user>`. 
