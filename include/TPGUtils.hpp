@@ -80,10 +80,14 @@ void save_raw_data(swtpg_wibeth::MessageRegisters register_array,
 
   
   std::string file_name;
+  std::string file_name_TR_info = "";
+  if (TR_record_idx != "-1" && TR_frame_idx != "-1") {
+    file_name_TR_info = "_tr_" + TR_record_idx + "_fr_" + TR_frame_idx;
+  }
   if (channel_number == -1) {
-    file_name = "all_channels_" + algo + "_tr_" + TR_record_idx + "_fr_" + TR_frame_idx + "_data" + date_time_str + ".txt";
+    file_name = "all_channels_" + algo + file_name_TR_info + "_data_" + date_time_str + ".txt";
   } else {
-    file_name = "Channel_" + std::to_string(channel_number) + "_" + algo + "_tr_" + TR_record_idx + "_fr_" + TR_frame_idx + "_data" + date_time_str + ".txt";
+    file_name = "Channel_" + std::to_string(channel_number) + "_" + algo + file_name_TR_info + "_data_" + date_time_str + ".txt";
   }
   out_file.open(file_name.c_str(), std::ofstream::app);
 
