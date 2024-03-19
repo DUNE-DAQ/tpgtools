@@ -10,6 +10,7 @@
 
 #include "fdreadoutlibs/wibeth/tpg/ProcessAVX2.hpp"
 #include "fdreadoutlibs/wibeth/tpg/ProcessAbsRSAVX2.hpp"
+#include "fdreadoutlibs/wibeth/tpg/ProcessStandardRSAVX2.hpp"
 #include "fdreadoutlibs/wibeth/tpg/ProcessNaive.hpp"
 #include "fdreadoutlibs/wibeth/tpg/ProcessNaiveRS.hpp"
 
@@ -79,7 +80,7 @@ void tpg_emulator_avx::extract_hits(uint16_t* output_location, uint64_t timestam
         trigprim.adc_peak = hit_peak_adc[i];
         trigprim.detid = 666;
         trigprim.type = triggeralgs::TriggerPrimitive::Type::kTPC;
-        trigprim.algorithm = triggeralgs::TriggerPrimitive::Algorithm::kTPCDefault;
+        trigprim.algorithm = m_tp_algo;
         trigprim.version = 1;
         if (save_trigprim){
           save_TP_object(trigprim, "AVX", out_suffix);
@@ -133,9 +134,14 @@ void tpg_emulator_avx::extract_hits(uint16_t* output_location, uint64_t timestam
  void tpg_emulator_avx::initialize()  {
     
     if (m_select_algorithm == "SimpleThreshold") {
-      m_assigned_tpg_algorithm_function = &swtpg_wibeth::process_window_avx2<swtpg_wibeth::NUM_REGISTERS_PER_FRAME>;
+      m_tp_algo = dunedaq::trgdataformats::TriggerPrimitive::Algorithm::kSimpleThreshold;
+      m_assigned_tpg_algorithm_function = &swtpg_wibeth::process_window_avx2<swtpg_wibeth::NUM_REGISTERS_PER_FRAME>;      
     } else if (m_select_algorithm == "AbsRS") {
+      m_tp_algo = dunedaq::trgdataformats::TriggerPrimitive::Algorithm::kAbsRunningSum;
       m_assigned_tpg_algorithm_function = &swtpg_wibeth::process_window_rs_avx2<swtpg_wibeth::NUM_REGISTERS_PER_FRAME>;
+    } else if (m_select_algorithm == "StandardRS") {
+      m_tp_algo = dunedaq::trgdataformats::TriggerPrimitive::Algorithm::kRunningSum;
+      m_assigned_tpg_algorithm_function = &swtpg_wibeth::process_window_standard_rs_avx2<swtpg_wibeth::NUM_REGISTERS_PER_FRAME>;
     } else {
       throw tpgtools::TPGAlgorithmInexistent(ERS_HERE, m_select_algorithm);     
     }
@@ -194,7 +200,7 @@ void tpg_emulator_naive::extract_hits(uint16_t* output_location, uint64_t timest
       trigprim.adc_peak = hit_peak_adc;
       trigprim.detid = 666; 
       trigprim.type = triggeralgs::TriggerPrimitive::Type::kTPC;
-      trigprim.algorithm = triggeralgs::TriggerPrimitive::Algorithm::kTPCDefault;
+      trigprim.algorithm = m_tp_algo;
       trigprim.version = 1;
     
       if (save_trigprim) {
