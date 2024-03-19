@@ -40,7 +40,6 @@ public:
     m_parse_trigger_primitive = parse_trigger_primitive;
     m_select_algorithm = select_algorithm;
     m_select_channel_map = select_channel_map;    
-
   }
   tpg_emulator_base(tpg_emulator_base const&) = delete;
   tpg_emulator_base(tpg_emulator_base&&) = delete;
@@ -67,10 +66,8 @@ public:
     }
   }
 
-  void register_TR_info(int TR_record_idx = -1, int TR_frame_idx = -1) {
-    m_register_TR_record_idx = std::to_string(TR_record_idx);
-    m_register_TR_frame_idx = std::to_string(TR_frame_idx);
-  }
+  void save_raw_data(swtpg_wibeth::MessageRegisters register_array,
+                     uint64_t t0, int channel_number, std::string algo);
 
   void set_tpg_threshold(int tpg_threshold){
     m_tpg_threshold = tpg_threshold;
@@ -126,9 +123,10 @@ public:
   swtpg_wibeth::RegisterChannelMap m_register_channel_map;   
   // Mapping from expanded AVX register position to offline channel number
   std::array<uint, swtpg_wibeth::NUM_REGISTERS_PER_FRAME * swtpg_wibeth::SAMPLES_PER_REGISTER> m_register_channels = {};
+
   // TR info for validation purposes
-  std::string m_register_TR_record_idx = "-1";
-  std::string m_register_TR_frame_idx = "-1";
+  int m_register_TR_record_idx = -1;
+  int m_register_TR_frame_idx = -1;
 };
 
 
@@ -162,7 +160,6 @@ public:
 
 // Inheriting the base class constructor
 using tpg_emulator_base::tpg_emulator_base;
-
 
 void extract_hits(uint16_t* output_location, uint64_t timestamp,
                       bool save_trigprim, std::string out_suffix);
