@@ -67,6 +67,14 @@ public:
     }
   }
 
+<<<<<<< HEAD
+=======
+  void register_TR_info(int TR_record_idx = -1, int TR_frame_idx = -1) {
+    m_register_TR_record_idx = std::to_string(TR_record_idx);
+    m_register_TR_frame_idx = std::to_string(TR_frame_idx);
+  }
+
+>>>>>>> a46a568 (Tidy up option to save raw adc data)
   void set_tpg_threshold(int tpg_threshold){
     m_tpg_threshold = tpg_threshold;
   }
@@ -129,6 +137,9 @@ public:
   swtpg_wibeth::RegisterChannelMap m_register_channel_map;   
   // Mapping from expanded AVX register position to offline channel number
   std::array<uint, swtpg_wibeth::NUM_REGISTERS_PER_FRAME * swtpg_wibeth::SAMPLES_PER_REGISTER> m_register_channels = {};
+  // TR info for validation purposes
+  std::string m_register_TR_record_idx = "-1";
+  std::string m_register_TR_frame_idx = "-1";
 };
 
 
