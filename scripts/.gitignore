@@ -1,3 +1,4 @@
+output/
 *.txt
 *.hdf5
 *.png
