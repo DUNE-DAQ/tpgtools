@@ -15,6 +15,67 @@
 #include "fdreadoutlibs/wibeth/tpg/ProcessNaiveRS.hpp"
 
 
+// =================================================================
+//                       tpg_emulator_base
+// =================================================================
+// Function to save raw ADC data to a file (only for debugging) 
+void tpg_emulator_base::save_raw_data(swtpg_wibeth::MessageRegisters register_array, 
+	       uint64_t t0, int channel_number, std::string algo)
+{
+  std::ofstream out_file;
+  auto t = std::time(nullptr);
+  auto tm = *std::localtime(&t);  
+  std::ostringstream oss;
+  oss << std::put_time(&tm, "%d-%m-%Y_%H-%M");
+  auto date_time_str = oss.str();
+
+  std::string file_name;
+  std::string file_name_TR_info = "";
+  if (m_register_TR_record_idx != -1 && m_register_TR_frame_idx != -1) {
+    file_name_TR_info = "_tr_" + std::to_string(m_register_TR_record_idx) + "_fr_" + std::to_string(m_register_TR_frame_idx);
+  }
+  if (channel_number == -1) {
+    file_name = "all_channels_" + algo + file_name_TR_info + "_data_" + date_time_str + ".txt";
+  } else {
+    file_name = "Channel_" + std::to_string(channel_number) + "_" + algo + file_name_TR_info + "_data_" + date_time_str + ".txt";
+  }
+  out_file.open(file_name.c_str(), std::ofstream::app);
+
+  uint64_t t_current= t0 ; 
+  
+  for (size_t ichan = 0; ichan < swtpg_wibeth::NUM_REGISTERS_PER_FRAME * swtpg_wibeth::SAMPLES_PER_REGISTER; ++ichan) {
+
+    const size_t register_index = ichan / swtpg_wibeth::SAMPLES_PER_REGISTER;
+    // Parse only selected channel number. To select all channels choose -1
+    if (static_cast<int>(ichan) ==channel_number || channel_number == -1) { 
+   
+      const size_t register_offset = ichan % swtpg_wibeth::SAMPLES_PER_REGISTER;
+      const size_t register_t0_start = register_index * swtpg_wibeth::SAMPLES_PER_REGISTER * swtpg_wibeth::FRAMES_PER_MSG;
+  
+      for (size_t iframe = 0; iframe<swtpg_wibeth::FRAMES_PER_MSG; ++iframe) {
+    
+        const size_t msg_index = iframe / swtpg_wibeth::FRAMES_PER_MSG; 
+        const size_t msg_time_offset = iframe % swtpg_wibeth::FRAMES_PER_MSG;
+        // The index in uint16_t of the start of the message we want // NOLINT 
+        const size_t msg_start_index = msg_index * (swtpg_wibeth::ADCS_SIZE) / sizeof(uint16_t); // NOLINT
+        const size_t offset_within_msg = register_t0_start + swtpg_wibeth::SAMPLES_PER_REGISTER * msg_time_offset + register_offset;
+        const size_t index = msg_start_index + offset_within_msg;
+    
+        int16_t adc_value = register_array.uint16(index);
+        out_file << " Time " << iframe << " channel " <<  ichan << " ADC_value " <<  adc_value <<  " timestamp " << t_current << std::endl;
+
+        t_current += 32; 
+      } 
+
+    }
+  }
+  out_file.close();
+
+}
+
+
+
+
 
 // =================================================================
 //                       tpg_emulator_avx
@@ -94,7 +155,7 @@ void tpg_emulator_avx::extract_hits(uint16_t* output_location, uint64_t timestam
 
 }
 
- void tpg_emulator_avx::execute_tpg(const dunedaq::fdreadoutlibs::types::DUNEWIBEthTypeAdapter* fp) {
+void tpg_emulator_avx::execute_tpg(const dunedaq::fdreadoutlibs::types::DUNEWIBEthTypeAdapter* fp) {
 
   // Set CPU affinity of the TPG thread
   SetAffinityThread(m_CPU_core);
