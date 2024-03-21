@@ -144,10 +144,9 @@ main(int argc, char** argv)
 
       ++wibeth_frame_index;
 
-      if (!repeat_timer) {
-        if (wibeth_frame_index == total_num_frames) {
-          continue;
-        }
+      if (repeat_timer) {
+      if (wibeth_frame_index == total_num_frames) {
+        continue;
       }
 
       // If end of the file is reached, restart the index counter
@@ -170,9 +169,8 @@ main(int argc, char** argv)
         }
       }
 
-	
-
       limiter.limit();
+      }
 
     }    
     fmt::print("\n\n=============================== \n");
