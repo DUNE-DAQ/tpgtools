@@ -169,7 +169,7 @@ void tpg_emulator_avx::execute_tpg(const dunedaq::fdreadoutlibs::types::DUNEWIBE
 
   
   if (m_first_hit) {   
-    m_frame_handler.m_tpg_processing_info->setState(registers_array);
+    m_frame_handler.m_tpg_processing_info->setState(registers_array, m_register_memory_factor);
     m_first_hit = false;    
     // Save ADC info
     if (m_save_adc_data && m_num_frames_to_save == 1) {
@@ -213,8 +213,12 @@ void tpg_emulator_avx::execute_tpg(const dunedaq::fdreadoutlibs::types::DUNEWIBE
       m_channel_map = dunedaq::detchannelmaps::make_map(m_select_channel_map);
     }
 
+    for (size_t i = 0; i < swtpg_wibeth::NUM_REGISTERS_PER_FRAME * swtpg_wibeth::SAMPLES_PER_REGISTER; ++i) {
+      m_register_memory_factor[i] = m_tpg_rs_memory_factor;
+    }
+
     // Initialize frame handler
-    m_frame_handler.initialize(m_tpg_threshold);
+    m_frame_handler.initialize(m_tpg_threshold, m_tpg_rs_memory_factor, m_tpg_rs_scale_factor, m_tpg_frugal_streaming_accumulator_limit);
 
 };
 
@@ -288,7 +292,7 @@ void tpg_emulator_naive::execute_tpg(const dunedaq::fdreadoutlibs::types::DUNEWI
 
   
   if (m_first_hit) {   
-    m_frame_handler.m_tpg_processing_info->setState(registers_array);
+    m_frame_handler.m_tpg_processing_info->setState(registers_array, m_register_memory_factor);
     m_first_hit = false;    
     // Save ADC info
     if (m_save_adc_data && m_num_frames_to_save == 1) {
@@ -328,7 +332,14 @@ void tpg_emulator_naive::initialize()  {
     TLOG() << "Using channel map: " << m_select_channel_map;
     m_channel_map = dunedaq::detchannelmaps::make_map(m_select_channel_map);
   } 
+
+  for (size_t i = 0; i < swtpg_wibeth::NUM_REGISTERS_PER_FRAME * swtpg_wibeth::SAMPLES_PER_REGISTER; ++i) {
+    m_register_memory_factor[i] = m_tpg_rs_memory_factor;
+  }
    
   // Initialize frame handler
-  m_frame_handler.initialize(m_tpg_threshold);
+  // AAA: fix me with proper TPG configuration parameters
+  m_frame_handler.initialize(m_tpg_threshold, m_tpg_rs_memory_factor, m_tpg_rs_scale_factor, m_tpg_frugal_streaming_accumulator_limit);
+
+
 };
