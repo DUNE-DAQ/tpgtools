@@ -113,6 +113,10 @@ public:
   int m_CPU_core = 0;
   int m_num_frames_to_save = 1;
 
+  uint16_t m_tpg_rs_memory_factor = 8;
+  uint16_t m_tpg_rs_scale_factor = 5;
+  int16_t m_tpg_frugal_streaming_accumulator_limit = 10;  
+
   // Frame Handler 
   dunedaq::fdreadoutlibs::WIBEthFrameHandler m_frame_handler;
 
@@ -125,6 +129,13 @@ public:
   swtpg_wibeth::RegisterChannelMap m_register_channel_map;   
   // Mapping from expanded AVX register position to offline channel number
   std::array<uint, swtpg_wibeth::NUM_REGISTERS_PER_FRAME * swtpg_wibeth::SAMPLES_PER_REGISTER> m_register_channels = {};
+
+  // Create an array to store the values of the memory factor 
+  // AAA: silver bullet to be able to use SimpleThreshold on collection and RS on induction planes
+  // By default set all the values to the selected memory factor 
+  std::array<uint16_t, swtpg_wibeth::NUM_REGISTERS_PER_FRAME * swtpg_wibeth::SAMPLES_PER_REGISTER> m_register_memory_factor = {0};
+
+
 };
 
 

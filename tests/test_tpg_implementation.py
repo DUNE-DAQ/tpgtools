@@ -84,7 +84,7 @@ def get_input(tmp_dir_path,get_pattern,get_channel,get_tick,get_threshold,get_fr
 
   # pattern generation
   exe = "wibeth_tpg_pattern_generator "
-  args =  ["-f", "/nfs/home/ivhristo/dune/rawhit/run/demo_1/wibeth_output_all_zeros.bin"]
+  args =  ["-f", "/cvmfs/dunedaq.opensciencegrid.org/assets/files/d/d/1/wibeth_output_all_zeros.bin"]
   args += ["-o", str_path]
   args += ["--save-trigprim -w"]
   args += ["-n", num_frames]

@@ -322,10 +322,17 @@ PattgenAlgs::pattgen_function_square(PattgenInfo& info)
       if (itime >= 0 && itime<=62 && info.iframe==0) {
         TLOG() << "Nothing to do for first frame";
       } else {
-        if (itime == 0) info.output_frame->set_adc(info.input_ch, itime, 500);
-        if (itime == 63) info.output_frame->set_adc(info.input_ch, itime, 500);
+        if (info.input_ch != -1) {
+          if (itime == 0) info.output_frame->set_adc(info.input_ch, itime, 500);
+          if (itime == 63) info.output_frame->set_adc(info.input_ch, itime, 500);
+        } else {
+          for (int ch=0; ch<64; ++ch) {
+            if (itime == 0) info.output_frame->set_adc(ch, itime, 500);
+            if (itime == 63) info.output_frame->set_adc(ch, itime, 500);
+          }       
+        }
       }
-      if (info.verbose) {
+      if (info.verbose && info.input_ch != -1) {
         uint16_t adc_val = info.output_frame->get_adc(info.input_ch, itime);
         TLOG() << "Output ADC value: " << adc_val << "\t\t\tFrame: " << itime << " \t\tChannel: " << info.input_ch << " \t\tTimeSample: " << itime;
       }
@@ -343,10 +350,17 @@ PattgenAlgs::pattgen_function_square_left(PattgenInfo& info) {
       if (itime >= 0 && itime<=62 && info.iframe==0) {
         TLOG() << "Nothing to do for first frame";
       } else {
-        if (itime == 0) info.output_frame->set_adc(info.input_ch, itime, 500);
-        if (itime == 63) info.output_frame->set_adc(info.input_ch, itime, 501);
+	if (info.input_ch != -1) {
+          if (itime == 0) info.output_frame->set_adc(info.input_ch, itime, 500);
+          if (itime == 63) info.output_frame->set_adc(info.input_ch, itime, 501);
+	} else {
+	  for (int ch=0; ch<64; ++ch) {
+	    if (itime == 0) info.output_frame->set_adc(ch, itime, 500);
+            if (itime == 63) info.output_frame->set_adc(ch, itime, 501);
+	  }
+	}
       }
-      if (info.verbose) {
+      if (info.verbose && info.input_ch != -1) {
         uint16_t adc_val = info.output_frame->get_adc(info.input_ch, itime);
         TLOG() << "Output ADC value: " << adc_val << "\t\t\tFrame: " << itime << " \t\tChannel: " << info.input_ch << " \t\tTimeSample: " << itime;
       }
@@ -364,10 +378,17 @@ PattgenAlgs::pattgen_function_square_right(PattgenInfo& info) {
       if (itime >= 0 && itime<=62 && info.iframe==0) {
         TLOG() << "Nothing to do for first frame";
       } else {
-        if (itime == 0) info.output_frame->set_adc(info.input_ch, itime, 501);
-        if (itime == 63) info.output_frame->set_adc(info.input_ch, itime, 500);
+        if (info.input_ch != -1) {
+          if (itime == 0) info.output_frame->set_adc(info.input_ch, itime, 501);
+          if (itime == 63) info.output_frame->set_adc(info.input_ch, itime, 500);
+        } else {
+          for (int ch=0; ch<64; ++ch) {
+            if (itime == 0) info.output_frame->set_adc(ch, itime, 501);
+            if (itime == 63) info.output_frame->set_adc(ch, itime, 500);
+          }
+        }
       }
-      if (info.verbose) {
+      if (info.verbose && info.input_ch != -1) {
         uint16_t adc_val = info.output_frame->get_adc(info.input_ch, itime);
         TLOG() << "Output ADC value: " << adc_val << "\t\t\tFrame: " << itime << " \t\tChannel: " << info.input_ch << " \t\tTimeSample: " << itime;
       }
@@ -380,44 +401,10 @@ PattgenAlgs::pattgen_function_square_right(PattgenInfo& info) {
 // =================================================================
 /*
  * Invokes the algorithms using function pointers 
-*/
+ */
 void 
 execute_tpgpg(PattgenInfo& info, PattgenAlgs& pa) 
 {
-  /*
-  // Parse the WIBEth frames
-  uint64_t timestamp = info.output_frame->get_timestamp();
-  uint64_t expected_timestamp = info.first_timestamp + info.iframe*2048;
-  if (info.iframe>0 && timestamp != expected_timestamp) {
-    if (info.verbose) {
-      TLOG() << " |______ TIMESTAMP WILL BE OVERWRITTEN! OLD: " << timestamp << ", NEW: " << expected_timestamp;
-    }
-    info.output_frame->set_timestamp(expected_timestamp);
-  }
-  // for offline channel map, avoid error e.g. Invalid stream number 176
-  if (info.overwrite_wibeth_header) {
-    if (info.verbose) {
-       TLOG() << "CRATE " << info.output_frame->daq_header.crate_id; 
-       TLOG() << "SLOT " << info.output_frame->daq_header.slot_id; 
-       TLOG() << "STREAM " << info.output_frame->daq_header.stream_id; 
-    }
-    //if crate number looks wrong 
-    if (info.output_frame->daq_header.crate_id != 6) {
-      if (info.verbose) TLOG() << " |______ CRATE-ID WILL BE OVERWRITTEN! OLD: " << info.output_frame->daq_header.crate_id << ", NEW: " << 6;
-      info.output_frame->daq_header.crate_id = 6;
-    }
-    //if slot number looks wrong
-    if (info.output_frame->daq_header.slot_id != 0) {
-      if (info.verbose) TLOG() << " |______ SLOT-ID WILL BE OVERWRITTEN! OLD: " << info.output_frame->daq_header.slot_id << ", NEW: " << 0;
-      info.output_frame->daq_header.slot_id = 0;
-    }
-    //if stream number looks wrong (not 0,1,2,3 or 64,65,66,67)
-    if (info.output_frame->daq_header.stream_id != 0) {
-      if (info.verbose) TLOG() << " |______ STREAM-ID WILL BE OVERWRITTEN! OLD: " << info.output_frame->daq_header.stream_id << ", NEW: " << 0;
-      info.output_frame->daq_header.stream_id = 0;
-    }
-  }
-  */
   pa.check_header(info);
   pa.run_algorithm(info);
 }
@@ -429,7 +416,7 @@ execute_tpgpg(PattgenInfo& info, PattgenAlgs& pa)
  * Standalone algorithm for ADC waveform analysis and signal identification, i.e. hit finding 
  * Extracts hits (or trigger primitives) in an independent way using continuous waveform as input
  * Hits are stored in a text file for reference and validation purposes 
-*/
+ */
 void waveform_analyser(std::vector<uint16_t>& adcs, std::vector<std::vector<int>>& out, const int& channel, 
 		const int& threshold) {
 
@@ -522,28 +509,24 @@ execute_tpgpg_validation(PattgenInfo& info)
   output_file_pedsub.open(info.path_output+"/"+info.out_prefix+"_wibeth_output_pedsub.bin", std::ios::app | std::ios::binary);
   int16_t median_ssr[64] = { 0 };
   int16_t accum_ssr[64] = { 0 };
-  int16_t median = 0;
-  int16_t accum = 0;
+  int input_ch = info.input_ch;
 
   for (int i=0; i<info.num_frames; i++) {
     TLOG() << "========== FRAME_NUM " << i;
     output_frame_pedsub = input_file_fake.frame(i);
     for (int ch=0; ch<64; ++ch) {
+      if (info.input_ch == -1) input_ch = ch;
       if (i==0) {
         median_ssr[ch] = output_frame_pedsub->get_adc(ch, 0);
       }	
-      median = median_ssr[ch];
-      accum = accum_ssr[ch];
       for (int itime=0; itime<64; ++itime) {
-        int16_t sample = output_frame_pedsub->get_adc(ch, itime);
-	if (ch == info.input_ch) {
-          swtpg_wibeth::frugal_accum_update(median, sample, accum, 10);
-          median_ssr[ch] = median;
-          accum_ssr[ch] = accum;
-	  sample -= median;
+        int16_t sample = input_file_fake.frame(i)->get_adc(ch, itime);
+	if (ch == input_ch) {
+          swtpg_wibeth::frugal_accum_update(median_ssr[ch], sample, accum_ssr[ch], 10);
+	  sample -= median_ssr[ch];
 	}
 	// IH TDAQ ERROR when ADC value out of range 
-	if (sample > 0 && sample < INT16_MAX) {
+	if (sample >= 0 && sample < INT16_MAX) {
 	  output_frame_pedsub->set_adc(ch, itime, sample);
 	} else {
           output_frame_pedsub->set_adc(ch, itime, 0);
@@ -567,8 +550,10 @@ execute_tpgpg_validation(PattgenInfo& info)
   std::ofstream output_file_pedsub_hits;
   output_file_pedsub_hits.open(file_name_hits.c_str(), std::ofstream::app);
 
+  input_ch = info.input_ch;
   for (int ch=0; ch<64; ++ch) {
-    if (ch != info.input_ch) continue;
+    if (info.input_ch == -1) input_ch = ch;
+    if (ch !=input_ch) continue;
     std::vector<uint16_t> adcs;
     std::vector<std::vector<int>> tmp_out;
     uint64_t timestamp = 0;

@@ -163,6 +163,7 @@ Example of usage:
 ```sh
 rm patt_golden_1_wibeth_output.bin patt_golden_1_wibeth_output_pedsub.bin patt_golden_1_wibeth_output_pedsub_hits.txt
 wibeth_tpg_pattern_generator -f wibeth_output_all_zeros.bin -n 2 -i 0 -t 499 -o 1 -p patt_golden --save-trigprim -s __1 -v -w 
+wibeth_tpg_pattern_generator -f wibeth_output_all_zeros.bin -o . --save-trigprim -w -n 2 -t 64 -i 0 -c 63 -p patt_golden -s __63
 ```
 
 ### Workload emulator
@@ -196,6 +197,7 @@ Example of usage:
 ```sh
 $ wibeth_tpg_workload_emulator -f patt_golden_1_wibeth_output.bin -r false -a SimpleThreshold -i NAIVE -n 2 -t 64  --save-trigprim -s __1
 $ wibeth_tpg_workload_emulator -f patt_golden_1_wibeth_output.bin -r false -a SimpleThreshold -i AVX -n 2 -t 64  --save-trigprim -s __1
+wibeth_tpg_workload_emulator -f patt_golden_chan_0_tick_63_wibeth_output.bin -r false -m VDColdboxChannelMap --save-trigprim -n 2 -t 64 -c 63 -a AbsRS -i AVX
 ```
 
 ### Running `pytest`
@@ -227,6 +229,9 @@ where
     algorithm      = SimpleThreshold, AbsRS
 ```
 
+Regarding the patterns, For example, the `patt_square` which creates a constant-ADC pattern, few ticks wide, on a given channel, has a fixed amplitude of 500. For `patt_golden`, the sequence of ADC values is: 500, 502, 504, 505, 506, 505, 504, 502, 500.
+
+
 To run the full suite of tests use:
 ```sh
 addopts = --quiet -ra  (in pytest.ini)
@@ -239,11 +244,11 @@ As the `pytest` script currently scans/tests all parameters sequentially, it tak
 ```sh
 cd sourcecode/tpgtools
 export PYTEST_DISABLE_PLUGIN_AUTOLOAD=1
-pytest -k "test_all_params\patt_golden-0-1-64-2-SimpleThreshold]" tests
-pytest --printout=more -k "test_all_params\[patt_golden-0-1-64-2-AbsRS]" tests
+pytest -k "test_all_params[patt_golden-0-1-64-2-SimpleThreshold]" tests
+pytest --printout=more -k "test_all_params[patt_golden-0-1-64-2-AbsRS]" tests
 ```
 
-This test gives immediate feedback as to whether the test passed or failed. The output from the test is stored in the local machine directory, named `/tmp/pytest-of-<user>`. 
+This test gives immediate feedback as to whether the test passed or failed. The output from the test is stored in `/tmp/pytest-of-<user>` on the machine where the test was run. 
 
 #### Example to run the default test bundle 
 ```sh
@@ -252,7 +257,7 @@ export PYTEST_DISABLE_PLUGIN_AUTOLOAD=1
 ./test_tpg_implementation_bundle.sh -d | tee pytest_log.txt
 ```
 
-This test takes a few minutes to complete and provides a reasonable coverage of the parameters. 
+This test takes a about 15 minutes to complete and provides a reasonable coverage of the parameters. In a next version we aim to reduce the time and provide a one-line summary of all tests. 
 
 ## Notes
 - The tools and scripts developed have been used for TPG related activities. They have not been generalized to cover all use-cases. If there is a need or feature request, ask mainteners of the repository.  

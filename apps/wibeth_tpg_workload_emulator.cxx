@@ -145,31 +145,31 @@ main(int argc, char** argv)
       ++wibeth_frame_index;
 
       if (repeat_timer) {
-      if (wibeth_frame_index == total_num_frames) {
-        continue;
-      }
-
-      // If end of the file is reached, restart the index counter
-      if (wibeth_frame_index == total_num_frames) {
-        wibeth_frame_index = 0;
-	      frame_repeat_index++;
-      }
-
-      if (frame_repeat_index % 100  == 0) {
-        // Calculate elapsed time in seconds  
-        auto now = std::chrono::high_resolution_clock::now();
-        auto elapsed_seconds = std::chrono::duration_cast<std::chrono::seconds>(now - start_test).count();  
-        fmt::print("Elapsed time [s]: {} \n", elapsed_seconds);
-	
-	      frame_repeat_index = 0;        
-
-        // stop the testing after a time a condition
-        if (elapsed_seconds > duration_test) {
-          wibeth_frame_index = total_num_frames;
+        if (wibeth_frame_index == total_num_frames) {
+          continue;
         }
-      }
 
-      limiter.limit();
+        // If end of the file is reached, restart the index counter
+        if (wibeth_frame_index == total_num_frames) {
+          wibeth_frame_index = 0;
+	  frame_repeat_index++;
+        }
+
+        if (frame_repeat_index % 100  == 0) {
+          // Calculate elapsed time in seconds  
+          auto now = std::chrono::high_resolution_clock::now();
+          auto elapsed_seconds = std::chrono::duration_cast<std::chrono::seconds>(now - start_test).count();  
+          fmt::print("Elapsed time [s]: {} \n", elapsed_seconds);
+	
+	  frame_repeat_index = 0;        
+
+          // stop the testing after a time a condition
+          if (elapsed_seconds > duration_test) {
+            wibeth_frame_index = total_num_frames;
+          }
+        }
+
+        limiter.limit();
       }
 
     }    
