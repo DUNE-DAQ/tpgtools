@@ -61,6 +61,8 @@ main(int argc, char** argv)
     bool parse_trigger_primitive = false;
     app.add_flag("--parse_trigger_primitive", parse_trigger_primitive, "Parse Trigger Primitive records");
 
+    int num_frames_to_save = 1;
+    app.add_option("-s,--num-frames-to-save", num_frames_to_save, "Set the number of frames of ADC data from a TR to save: -1 (all) or 1. Default: 1 (first frame only).");
 
     CLI11_PARSE(app, argc, argv);
 
@@ -81,6 +83,7 @@ main(int argc, char** argv)
 
     emulator->set_tpg_threshold(tpg_threshold);
     emulator->set_CPU_affinity(core_number);
+    emulator->set_num_frames_to_save(num_frames_to_save);
     emulator->initialize();
 
     
@@ -151,7 +154,10 @@ main(int argc, char** argv)
               // Execute the TPG algorithm on the WIBEth adapter frames
               auto fp = reinterpret_cast<dunedaq::fdreadoutlibs::types::DUNEWIBEthTypeAdapter*>(fr);
               
-        
+              if (num_frames_to_save == -1) { 
+		emulator->m_register_TR_record_idx = record_idx_TR;
+		emulator->m_register_TR_frame_idx = i;
+              }		
               emulator->execute_tpg(fp);
       
       
