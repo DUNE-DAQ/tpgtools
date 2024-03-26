@@ -36,7 +36,9 @@ $ wibeth_tpg_algorithms_emulator -f swtest_run000035_0000_dataflow0_datawriter_0
 
 ## Utility tools and scripts
 
-* `wibeth_tpg_workload_emulator` is a simple emulator for TPG algorithm in either a naive or in AVX implementation. The application allows to emulate the workload when running a TPG algorithm and therefore monitor performance metrics. It requires an input binary frame file (check assets-list for valid input files) and it will execute the desired TPG algorithm for a configurable duration (default value is 120 seconds). The application is single threaded, pinned to core 0 (configurable). Check the helper page for more details. Example of usage: `wibeth_tpg_workload_emulator -f wibeth_frame_file.bin` 
+* `wibeth_tpg_workload_emulator` is a simple emulator for TPG algorithm in either a naive or in AVX implementation. The application allows to emulate the workload when running a TPG algorithm and therefore monitor performance metrics. It requires an input binary frame file (check assets-list for valid input files) and it will execute the desired TPG algorithm for a configurable duration (default value is 120 seconds). The application is single threaded, pinned to core 0 (configurable). Check the helper page for more details. 
+
+Example of usage: `wibeth_tpg_workload_emulator -f wibeth_frame_file.bin` 
 
 * `wibeth_tpg_validation` is a simple emulator for validating different TPG algorithms, either in naive or in AVX implementation. Check the helper page for more details. Usage: `wibeth_tpg_validation -f wibeth_frame_file.bin` 
 
@@ -128,6 +130,70 @@ pip install --prefix=$PREFIX_PATH matplotlib
 export PYTHONPATH=$PREFIX_PATH/lib/python3.10/site-packages/:$PYTHONPATH
 ```
 
+## Validation tools
+
+### Pattern generator
+
+`wibeth_tpg_pattern_generator` is a pattern generator application for validating TPG algorithms. It takes as input an existing WIBEth frame file (`*.bin` file) and it will (a) set ADC values for a given channel and set of time ticks according to the desired pattern, and (b) reset all other ADC values to 0. 
+To use the tool run the following:
+```sh
+$ wibeth_tpg_pattern_generator --help
+TPG pattern generator using as input and storing output as raw WIBEth ADC binary files
+Usage: wibeth_tpg_pattern_generator [OPTIONS]
+
+Options:
+  -h,--help                   Print this help message and exit
+  -f,--file-path-input TEXT   Path to the input file
+  -n,--num-frames-to-read INT Number of WIBEth frames to read. Default: select all frames.
+  -i,--input_channel UINT     Input channel number for adding fake hit. Default: 0.
+  -t,--tpg-threshold INT      Value of the TPG threshold. Default value is 500.
+  --save-adc-data             Save ADC data (first frame only)
+  --save-trigprim             Save trigger primitive data
+  -o,--time-tick-offset INT   Time tick of pattern start. Default: 1 (max:63).
+  -s,--out_suffix TEXT        Append string (suffix) to output hit file name
+  -p,--select-pattern TEXT    Test pattern name (patt_golden, patt_pulse, patt_square, patt_square_left, patt_square_right). Default: patt_golden.
+  -w,--overwrite-wibeth-header
+                              Overwrite crate, slot, stream IDs (needed for offline channel map). Default: false.
+  -v,--verbose                Printout additional information while the application is running. Default: false.
+```
+
+Example of usage:
+```sh
+rm patt_golden_1_wibeth_output.bin patt_golden_1_wibeth_output_pedsub.bin patt_golden_1_wibeth_output_pedsub_hits.txt
+wibeth_tpg_pattern_generator -f wibeth_output_all_zeros.bin -n 2 -i 0 -t 499 -o 1 -p patt_golden --save-trigprim -s __1 -v -w 
+```
+
+### Workload emulator
+
+`wibeth_tpg_workload_emulator` is an emulator application for TPG algorithms. It takes as input a WIBEth frame file (`*.bin` file) and it will execute the selected TPG algorithm on the WIBEth frame data. This application is used for comparing NAIVE and AVX implementations of a given TPG algorithm using a well known input test pattern file. 
+
+To use the tool run the following:
+```sh
+$ wibeth_tpg_workload_emulator --help
+Generate workload for TPG algorithms using binary frame files.
+Usage: wibeth_tpg_workload_emulator [OPTIONS]
+
+Options:
+  -h,--help                   Print this help message and exit
+  -f,--file-path-input TEXT   Path to the input file
+  -a,--algorithm TEXT         TPG Algorithm (SimpleThreshold / AbsRS). Default: SimpleThreshold
+  -i,--implementation TEXT    TPG implementation (AVX / NAIVE). Default: AVX
+  -m,--channel-map TEXT       Select a valid channel map: None, VDColdboxChannelMap, ProtoDUNESP1ChannelMap, PD2HDChannelMap, HDColdboxChannelMap, FiftyLChannelMap
+  -d,--duration-test INT      Duration (in seconds) to run the test. Default value is 120.
+  -t,--tpg-threshold INT      Value of the TPG threshold. Default value is 500.
+  -c,--core INT               Set core number of the executing TPG thread. Default value is 0.
+  --save-adc-data             Save ADC data (first frame only)
+  --save-trigprim             Save trigger primitive data
+  -r,--repeat_timer BOOLEAN   Repeat frame processing until certain time elapsed (true/false). Default: true.
+  -s,--out_suffix TEXT        Append string to output hit file name (e.g. __1). Default: empty string).
+  -n,--num-frames-to-read INT Number of frames to read. Default: -1 (select all frames).
+```
+
+Example of usage:
+```sh
+$ wibeth_tpg_workload_emulator -f patt_golden_1_wibeth_output.bin -r false -a SimpleThreshold -i NAIVE -n 2 -t 64  --save-trigprim -s __1
+$ wibeth_tpg_workload_emulator -f patt_golden_1_wibeth_output.bin -r false -a SimpleThreshold -i AVX -n 2 -t 64  --save-trigprim -s __1
+```
 
 ## Notes
 - The tools and scripts developed have been used for TPG related activities. They have not been generalized to cover all use-cases. If there is a need or feature request, ask mainteners of the repository.  

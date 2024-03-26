@@ -40,7 +40,6 @@ public:
     m_parse_trigger_primitive = parse_trigger_primitive;
     m_select_algorithm = select_algorithm;
     m_select_channel_map = select_channel_map;    
-
   }
   tpg_emulator_base(tpg_emulator_base const&) = delete;
   tpg_emulator_base(tpg_emulator_base&&) = delete;
@@ -67,13 +66,20 @@ public:
     }
   }
 
+  void save_raw_data(swtpg_wibeth::MessageRegisters register_array,
+                     uint64_t t0, int channel_number, std::string algo);
+
   void set_tpg_threshold(int tpg_threshold){
     m_tpg_threshold = tpg_threshold;
   }
 
   void set_CPU_affinity(int core_number) {
     m_CPU_core = core_number;
-  }  
+  }
+
+  void set_num_frames_to_save(int num_frames_to_save) {
+    m_num_frames_to_save = num_frames_to_save;
+  }
 
   unsigned int get_total_hits() {
     return m_total_hits;
@@ -103,6 +109,7 @@ public:
 
   int m_tpg_threshold = 500; //default value 
   int m_CPU_core = 0;
+  int m_num_frames_to_save = 1;
 
   uint16_t m_tpg_rs_memory_factor = 8;
   uint16_t m_tpg_rs_scale_factor = 5;
@@ -126,7 +133,9 @@ public:
   // By default set all the values to the selected memory factor 
   std::array<uint16_t, swtpg_wibeth::NUM_REGISTERS_PER_FRAME * swtpg_wibeth::SAMPLES_PER_REGISTER> m_register_memory_factor = {0};
 
-
+  // TR info for validation purposes
+  int m_register_TR_record_idx = -1;
+  int m_register_TR_frame_idx = -1;
 };
 
 
@@ -160,7 +169,6 @@ public:
 
 // Inheriting the base class constructor
 using tpg_emulator_base::tpg_emulator_base;
-
 
 void extract_hits(uint16_t* output_location, uint64_t timestamp,
                       bool save_trigprim, std::string out_suffix);
