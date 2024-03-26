@@ -257,18 +257,21 @@ with PdfPages(pdf_report_name) as pdf:
     if args.time_peak:
         # Add time_peak_plot_path
         plt.imshow(plt.imread(time_peak_plot_path))
+        plt.axis('off')
         pdf.savefig()  # Save figure to PDF
         plt.close()
     
     if args.time_over_threshold:
         # Add time_over_threshold_plot
         plt.imshow(plt.imread(time_over_threshold_plot))
+        plt.axis('off')
         pdf.savefig()
         plt.close()
         
     if args.adc_integral:
         # Add adc_integral_plot
         plt.imshow(plt.imread(adc_integral_plot))
+        plt.axis('off')
         pdf.savefig()
         plt.close()
         
@@ -276,6 +279,7 @@ with PdfPages(pdf_report_name) as pdf:
     if args.adc_peak:
         # Add adc_peak_plot
         plt.imshow(plt.imread(adc_peak_plot))
+        plt.axis('off')
         pdf.savefig()
         plt.close()
         
@@ -283,6 +287,7 @@ with PdfPages(pdf_report_name) as pdf:
     if args.channel:
         # Add channel_plot
         plt.imshow(plt.imread(channel_plot))
+        plt.axis('off')
         pdf.savefig()
         plt.close()
         
@@ -290,6 +295,7 @@ with PdfPages(pdf_report_name) as pdf:
     if args.detid:
         # Add det_id_plot
         plt.imshow(plt.imread(det_id_plot))
+        plt.axis('off')
         pdf.savefig()
         plt.close()
 
