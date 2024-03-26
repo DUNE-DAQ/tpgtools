@@ -167,7 +167,7 @@ for view in args.view:
     
     print("Plotting time over threshold...")
     if args.time_over_threshold:
-        plotTimeOverThreshold(tps_to_plot,
+        time_over_threshold_plot = plotTimeOverThreshold(tps_to_plot,
                             args.files,
                             superimpose=args.superimpose,
                             quantile=1,
@@ -178,7 +178,7 @@ for view in args.view:
 
     print("Plotting ADC integral...")
     if args.adc_integral:
-        plotADCIntegral(tps_to_plot,
+        adc_integral_plot = plotADCIntegral(tps_to_plot,
                         args.files,
                         superimpose=args.superimpose,
                         quantile=1,
@@ -189,7 +189,7 @@ for view in args.view:
 
     print("Plotting ADC peak...")
     if args.adc_peak:
-        plotADCPeak(tps_to_plot,
+        adc_peak_plot = plotADCPeak(tps_to_plot,
                     args.files,
                     superimpose=args.superimpose,
                     quantile=1,
@@ -200,7 +200,7 @@ for view in args.view:
 
     print("Plotting channel...")
     if args.channel:
-        plotChannel(tps_to_plot,
+        channel_plot = plotChannel(tps_to_plot,
                     args.files,
                     superimpose=args.superimpose,
                     x_min=None, x_max=None,
@@ -211,7 +211,7 @@ for view in args.view:
                 
     print ("Plotting detid...")
     if args.detid:
-        plotDetId(tps_to_plot,
+        det_id_plot = plotDetId(tps_to_plot,
                     args.files,
                     superimpose=args.superimpose,
                     y_min=None, y_max=None,
@@ -223,193 +223,75 @@ for view in args.view:
     print ("Finished plotting! Products are in: " + args.output_folder + " and are named after the input file and variables plotted, plus the suffix (if passed).")
 
    
-### Create a pdf report
+### Create a pdf report with the plots and the settings used
 
 # open pdf file
-
-
-pdf_report_name = '{}/tp_properties_report.pdf'.format(args.output_folder)
+pdf_report_name = '{}tp_properties_report.pdf'.format(args.output_folder)
 
 with PdfPages(pdf_report_name) as pdf:
-    # Example:
-    plt.figure(figsize=(8, 6))
-    plt.imshow(plt.imread('../tools/dune_logo.jpg'))
-    plt.axis('off')  # Hide axis
-    # plt.title('DUNE Logo')
-    pdf.savefig()  # Save figure to PDF
-    plt.close()
-
-    # Add title of the report
-    pdf_report_name = pdf_report_name.replace(args.output_folder, '')  # Remove folder path
-    # pdf.subtitle('Performance Report: {}'.format(pdf_report_name))
     
-    # pdf.set_font('Times', 'B', 16)
-    plt.text(0.1, 0.9, 'Selected options:')
-    plt.text(0.1, 0.9, script_settings, ha='left', va='top')
-    pdf.savefig()  # Save figure to PDF
-    plt.close()
-
-    # Add plots. Add time_peak_plot_path
-    plt.imshow(plt.imread(time_peak_plot_path))
-    pdf.savefig()  # Save figure to PDF
-    # clean page
-    plt.close()
-
+    # first page contains logo, title and settings
+    plt.figure(figsize=(9, 12))
+    plt.subplot(2, 1, 1)
+    plt.imshow(plt.imread('../tools/dune_logo.jpg')) # could be handled better but this'll do
+    plt.axis('off')  # Hide axes
+    
+    plt.subplot(2, 1, 2)
+    plt.axis('off')  # Hide axes
+    # set font to bold and size 16
+    plt.text(0.2, 1,'TP Properties Report', ha='center', va='center', weight='bold', fontsize=16)
     # Add time of creation
     now = datetime.datetime.now()
     creation_time_text = 'Report created on: {}'.format(now.strftime("%Y-%m-%d %H:%M:%S"))
-    plt.text(0.1, 0.9, creation_time_text, ha='left', va='top')
+    plt.text(0.8, 0.9, creation_time_text, ha='center', va='bottom')
+    plt.text(0.1, 0.85, 'Selected options:')
+    vert_shift = 0
+    for setting in script_settings:
+        plt.text(0.1, 0.8 + vert_shift, setting, ha='left', va='top')
+        vert_shift -= 0.05
     pdf.savefig()  # Save figure to PDF
+    plt.close()
 
-print("PDF report created: {}".format(pdf_report_name))
-
-
-# pdf.ln(1)
-# pdf.image('../tools/dune_logo.jpg', w=180)
-# pdf.ln(2)
-# pdf.set_font('Times', 'B', 16)
-# pdf.cell(40,10,'TP Properties Report')
-# pdf.ln(10)
-
-# # script_settings
-# pdf.set_font('Times', '', 12)
-# pdf.write(5, 'Selected options:')
-# pdf.ln(5)
-# for i in range(len(script_settings)):
-#     pdf.write(5, script_settings[i])
-#     pdf.ln(5)
+    # Add plots
+     
+    if args.time_peak:
+        # Add time_peak_plot_path
+        plt.imshow(plt.imread(time_peak_plot_path))
+        pdf.savefig()  # Save figure to PDF
+        plt.close()
     
-# pdf.ln(10)
-
-# # add image 
-# pdf.image(time_peak_plot_path, w=180)
-
-# pdf.write(5, 'Report made on {}'.format(current_time()))
-
-# print('The report was created and saved to {}'.format(pdf_name))
-
-
-# create a pdf report with the plots of the TPs
-# def create_report_performance(input_dir, output_dir, daqconfs_cpupins_folder_parent_dir, process_pcm_files=False, process_uprof_files=False, print_info=True, streams='8, 16, 24, 32, 40, and 48', pdf_name='performance_report', repin_threads_file=None, comment=['TBA']):    
-# directory([input_dir, output_dir])
-# pcm_file, uprof_file, core_utilization_file, reformated_uprof_file, reformated_core_utilization_file, all_file, all_plots_file = make_name_list(input_dir)
-
-
-
-# # Processing the data first
-# if process_pcm_files:
-#     for i, file_pcm_i in enumerate(pcm_file):
-#         add_new_time_format(input_dir, file_pcm_i)
-
-# if process_uprof_files:
-#     for i, file_uprof_i in enumerate(uprof_file):
-#         uprof_pcm_formatter(input_dir, file_uprof_i)
-#         add_new_time_format(input_dir, 'reformatter_{}'.format(file_uprof_i))
-
-# cpupins_utilazation_reformatter(input_dir)
-# for i, file_core_i in enumerate(core_utilization_file):
-#         add_new_time_format_utilization(input_dir, 'reformatter_{}'.format(file_core_i))
-    
-# if process_pcm_files or process_uprof_files:
-#     print('Finish the processing of the data.')
-
-# print(all_file[0])
-# info_pcm_basic = break_file_name(all_file[0])
-
-# # creating report
-# pdf.set_font('Times', '', 10)
-# pdf.write(5, 'The tests were run for the WIB{} data format for {} streams. The Figures 1 and 2 show the results of the tests ran (Table1) using the different metrics. \n'.format(info_pcm_basic[4], streams))
-# pdf.write(5, '    * L2-hits is the fraction of requests that make it to L2 at all. Similar for L3. \n')
-# pdf.write(5, '    * L2-misses is the fraction of requests that make it to L2 at all and then miss in L2. Similar for L3. \n')
-# pdf.ln(10)
-
-# #-------------------------------------------TABLE-----------------------------------------------
-# # Data to tabular
-# rows_data = []
-# headers = ['Test', 'Readout SRV', 'dunedaq', 'OS', 'NODE', 'General comments']
-# rows_data.append(headers)
-
-# line_height = pdf.font_size * 2
-# col_width = [pdf.epw/3.8, pdf.epw/8, pdf.epw/7, pdf.epw/12, pdf.epw/12, pdf.epw/5]  
-# lh_list = [] #list with proper line_height for each row
-
-# for i, file_i in enumerate(all_file):
-#     info = break_file_name(file_i)
-#     test_info = re.sub('_', ' ', info[5])
-#     line = [test_info, info[2], info[1], check_OS(info[2]), info[3], comment[i]]
-#     rows_data.append(line)
-
-# # Determine line heights based on the number of words in each cell
-# for row in rows_data:
-#     max_lines = 1  # Initialize with a minimum of 1 line
-#     for datum in row:
-#         lines_needed = len(str(datum).split('\n'))  # Count the number of lines
-#         max_lines = max(max_lines, lines_needed)
-
-#     lh_list.append(line_height * max_lines)
-    
-# # Add table rows with word wrapping and dynamic line heights
-# for j, row in enumerate(rows_data):
-#     line_height_table = lh_list[j] 
-#     for k, datum in enumerate(row):
-#         pdf.multi_cell(col_width[k], line_height_table, datum, border=1, align='L', new_x=XPos.RIGHT, new_y=YPos.TOP, max_line_height=pdf.font_size)
+    if args.time_over_threshold:
+        # Add time_over_threshold_plot
+        plt.imshow(plt.imread(time_over_threshold_plot))
+        pdf.savefig()
+        plt.close()
         
-#     pdf.ln(line_height_table)
-    
-# pdf.write(5, 'Table 1. Summary of the tests ran. \n')    
-# pdf.ln(10)
-
-# #--------------------------------------------FIGURES------------------------------------------------
-# plot_vars_comparison(input_dir, output_dir, pdf_name)
-
-# if info[3] == '0' or info[3] == '01':
-#     pdf.image('{}/{}_results_{}_socket0.png'.format(output_dir, pdf_name, info_pcm_basic[4]), w=180)
-#     pdf.write(5, 'Figure 1. Socket0 results of the tests ran using the metrics CPU Utilization (%), Memory Bandwidth (GB/sec), Instructions Per Cycle, Instructions Retired Any (Million).')
-#     pdf.ln(10)
-#     pdf.image('{}/{}_results_cache_{}_socket0.png'.format(output_dir, pdf_name, info_pcm_basic[4]), w=180)
-#     pdf.write(5, 'Figure 2. Socket0 results of the tests ran using the metrics L2 Cache Misses (Million), L2 Cache [Misses/Hits] (%), L3 Cache Misses (Million), and L3 Cache [Misses/Hits] (%).')
-#     pdf.ln(10)
-    
-#     if info[3] == '01':
-#         pdf.image('{}/{}_results_{}_socket1.png'.format(output_dir, pdf_name, info_pcm_basic[4]), w=180)
-#         pdf.write(5, 'Figure 3. Socket1 results of the tests ran using the metrics CPU Utilization (%), Memory Bandwidth (GB/sec), Instructions Per Cycle, Instructions Retired Any (Million).')
-#         pdf.ln(10)
-#         pdf.image('{}/{}_results_cache_{}_socket1.png'.format(output_dir, pdf_name, info_pcm_basic[4]), w=180)
-#         pdf.write(5, 'Figure 4. Socket1 results of the tests ran using the metrics L2 Cache Misses (Million), L2 Cache [Misses/Hits] (%), L3 Cache Misses (Million), and L3 Cache [Misses/Hits] (%).')
-#         pdf.ln(10)
-    
-# if info[3] == '1':
-#     pdf.image('{}/{}_results_{}_socket1.png'.format(output_dir, pdf_name, info_pcm_basic[4]), w=180)
-#     pdf.write(5, 'Figure 1. Socket1 results of the tests ran using the metrics CPU Utilization (%), Memory Bandwidth (GB/sec), Instructions Per Cycle, Instructions Retired Any (Million).')
-#     pdf.ln(10)
-#     pdf.image('{}/{}_results_cache_{}_socket1.png'.format(output_dir, pdf_name, info_pcm_basic[4]), w=180)
-#     pdf.write(5, 'Figure 2. Socket1 results of the tests ran using the metrics L2 Cache Misses (Million), L2 Cache [Misses/Hits] (%), L3 Cache Misses (Million), and L3 Cache [Misses/Hits] (%).')
-#     pdf.ln(10)
-    
-# #----------------------------------------CONFIGURATIONS---------------------------------------------
-# pcm_file, uprof_file, core_utilization_file, reformated_uprof_file, reformated_core_utilization_file, all_file, all_plots_file = make_name_list(input_dir)
-
-# if print_info:
-#     pdf.write(5, 'Configurations: \n', 'B')
-#     for i in range(len(all_file)):
-#         info = break_file_name(all_file[i])
+    if args.adc_integral:
+        # Add adc_integral_plot
+        plt.imshow(plt.imread(adc_integral_plot))
+        pdf.savefig()
+        plt.close()
         
-#         var_i='ru{}{}{}'.format(info[2], info[4], '0')
-#         file_daqconf_i='daqconf-{}-{}-{}-{}'.format(info[4], info[5], info[2], info[3])
-#         file_core_i='reformatter_core_utilization-{}-{}-{}-{}-{}'.format(info[1], info[2], info[3], info[4], info[5])
         
-#         if os.path.exists('{}/{}'.format(input_dir,file_core_i)):
-#             json_info(file_daqconf=file_daqconf_i, file_core=file_core_i, input_directory=daqconfs_cpupins_folder_parent_dir, input_dir=input_dir, var=var_i, pdf=pdf, if_pdf=print_info, repin_threads_file=repin_threads_file[i])
-#         else:
-#             print('Missing {}'.format(file_core_i))
-#             json_info(file_daqconf=file_daqconf_i, file_core='reformatter_core_utilization-all0', input_directory=daqconfs_cpupins_folder_parent_dir, input_dir='{}/tools'.format(daqconfs_cpupins_folder_parent_dir), var=var_i, pdf=pdf, if_pdf=print_info, repin_threads_file=repin_threads_file[i])
-#         pdf.cell(0, 10, 'Table {}. CPU core pins information for the "{}" test using dune_daq {}.'.format(i+2, info[5], info[1]))
-#         pdf.ln(10)           
+    if args.adc_peak:
+        # Add adc_peak_plot
+        plt.imshow(plt.imread(adc_peak_plot))
+        pdf.savefig()
+        plt.close()
         
-# pdf.ln(20)
-# pdf.set_font('Times', '', 10)
-# pdf.write(5, 'The End, made on {}'.format(current_time()))
-# pdf.output('{}/{}_report.pdf'.format(output_dir, pdf_name))
+        
+    if args.channel:
+        # Add channel_plot
+        plt.imshow(plt.imread(channel_plot))
+        pdf.savefig()
+        plt.close()
+        
+        
+    if args.detid:
+        # Add det_id_plot
+        plt.imshow(plt.imread(det_id_plot))
+        pdf.savefig()
+        plt.close()
 
-# print('The report was create and saved to {}/{}.pdf'.format(output_dir, pdf_name))
-
+print ("")
+print ("PDF report created: {}".format(pdf_report_name))
