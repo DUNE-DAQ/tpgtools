@@ -37,7 +37,7 @@ main(int argc, char** argv)
 
     // Set the output path
     std::string path_output = ".";
-    app.add_option("-o,--path-output", path_output, "Path to the output directory. Default: . (i.e. pwd)");     
+    app.add_option("-o,--path-output", path_output, "Path to the output directory. Default: . (i.e. pwd)"); 
 
     int num_frames_to_read = -1;
     app.add_option("-n,--num-frames-to-read", num_frames_to_read, "Number of WIBEth frames to read. Default: select all frames.");
@@ -114,7 +114,7 @@ main(int argc, char** argv)
     // Loop over the DUNEWIB Ethernet frames in the file
     std::fstream output_file;
     output_file.open(path_output+"/"+out_prefix+"_wibeth_output.bin", std::ios::app | std::ios::binary);
-
+  
     ph.m_pattgen_info->num_frames = num_frames_to_read;
     ph.m_pattgen_info->pattern_name = select_pattern;
     ph.m_pattgen_info->first_timestamp = first_timestamp;

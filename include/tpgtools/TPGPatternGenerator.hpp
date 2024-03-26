@@ -166,15 +166,15 @@ class PattgenHandler {
 		    , 0
 		    , "patt_golden"
 		    , 0
-                    , 0
+        , 0
 		    , ""
 		    , ""
-                    , 0
+        , 0
 		    , 0
-                    , 0
+        , 0
 		    , false
 		    , false
-                    );
+        );
   }
 };
 
@@ -204,7 +204,7 @@ struct PattgenAlgs
   static void pattgen_function_square_right(PattgenInfo& info);
 
   void check_header(PattgenInfo& info);
-   
+
   void init() {
     tpgpg_map["patt_golden"] = &pattgen_function_golden;
     tpgpg_map["patt_pulse"] = &pattgen_function_pulse;
@@ -510,7 +510,6 @@ execute_tpgpg_validation(PattgenInfo& info)
   int16_t median_ssr[64] = { 0 };
   int16_t accum_ssr[64] = { 0 };
   int input_ch = info.input_ch;
-
   for (int i=0; i<info.num_frames; i++) {
     TLOG() << "========== FRAME_NUM " << i;
     output_frame_pedsub = input_file_fake.frame(i);
@@ -549,7 +548,7 @@ execute_tpgpg_validation(PattgenInfo& info)
 
   std::ofstream output_file_pedsub_hits;
   output_file_pedsub_hits.open(file_name_hits.c_str(), std::ofstream::app);
-
+  
   input_ch = info.input_ch;
   for (int ch=0; ch<64; ++ch) {
     if (info.input_ch == -1) input_ch = ch;

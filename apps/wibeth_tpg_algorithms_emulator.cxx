@@ -155,6 +155,8 @@ main(int argc, char** argv)
               auto fp = reinterpret_cast<dunedaq::fdreadoutlibs::types::DUNEWIBEthTypeAdapter*>(fr);
               
               if (num_frames_to_save == -1) { 
+		            emulator->m_register_TR_record_idx = record_idx_TR;
+		            emulator->m_register_TR_frame_idx = i;
               }		
               emulator->execute_tpg(fp);
       

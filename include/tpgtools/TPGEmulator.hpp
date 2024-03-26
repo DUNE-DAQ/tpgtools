@@ -40,7 +40,6 @@ public:
     m_parse_trigger_primitive = parse_trigger_primitive;
     m_select_algorithm = select_algorithm;
     m_select_channel_map = select_channel_map;    
-
   }
   tpg_emulator_base(tpg_emulator_base const&) = delete;
   tpg_emulator_base(tpg_emulator_base&&) = delete;
@@ -66,6 +65,9 @@ public:
       std::iota(m_register_channels.begin(), m_register_channels.end(), 0);  
     }
   }
+
+  void save_raw_data(swtpg_wibeth::MessageRegisters register_array,
+                     uint64_t t0, int channel_number, std::string algo);
 
   void set_tpg_threshold(int tpg_threshold){
     m_tpg_threshold = tpg_threshold;
@@ -135,7 +137,9 @@ public:
   // By default set all the values to the selected memory factor 
   std::array<uint16_t, swtpg_wibeth::NUM_REGISTERS_PER_FRAME * swtpg_wibeth::SAMPLES_PER_REGISTER> m_register_memory_factor = {0};
 
-
+  // TR info for validation purposes
+  int m_register_TR_record_idx = -1;
+  int m_register_TR_frame_idx = -1;
 };
 
 
@@ -170,7 +174,6 @@ public:
 
 // Inheriting the base class constructor
 using tpg_emulator_base::tpg_emulator_base;
-
 
 void extract_hits(uint16_t* output_location, uint64_t timestamp,
                       bool save_trigprim, std::string path_output,
