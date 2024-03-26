@@ -193,10 +193,18 @@ Options:
   -n,--num-frames-to-read INT Number of frames to read. Default: -1 (select all frames).
 ```
 
-Example of usage:
+Example of usage: 
 ```sh
-$ wibeth_tpg_workload_emulator -f patt_golden_1_wibeth_output.bin -r false -a SimpleThreshold -i NAIVE -n 2 -t 64  --save-trigprim -s __1
-$ wibeth_tpg_workload_emulator -f patt_golden_1_wibeth_output.bin -r false -a SimpleThreshold -i AVX -n 2 -t 64  --save-trigprim -s __1
+$ wibeth_tpg_pattern_generator -f /cvmfs/dunedaq.opensciencegrid.org/assets/files/d/d/1/wibeth_output_all_zeros.bin -o . --save-trigprim -w -n 2 -t 64 -i 0 -c 63 -p patt_golden -s __63
+$ tpg_workload_emulator -f patt_golden_chan_0_tick_63_wibeth_output.bin -r false -a SimpleThreshold -i NAIVE  -n 2 -t 499 -m ProtoDUNESP1ChannelMap
+```
+
+Please note, when using `wibeth_output_all_zeros.bin` input file from the asset repository, the `-w` option is needed to overwrite the header information. The generated pattern file, `patt_golden_chan_0_tick_63_wibeth_output.bin`, is then used as input to the `tpg_workload_emulator` app.  
+
+More examples of usage:
+```sh
+$ wibeth_tpg_workload_emulator -f patt_golden_chan_0_tick_1_wibeth_output.bin -r false -a SimpleThreshold -i NAIVE -n 2 -t 64  --save-trigprim -s __1
+$ wibeth_tpg_workload_emulator -f patt_golden_chan_0_tick_1_wibeth_output.bin -r false -a SimpleThreshold -i AVX -n 2 -t 64  --save-trigprim -s __1
 wibeth_tpg_workload_emulator -f patt_golden_chan_0_tick_63_wibeth_output.bin -r false -m VDColdboxChannelMap --save-trigprim -n 2 -t 64 -c 63 -a AbsRS -i AVX
 ```
 
@@ -215,7 +223,7 @@ tests/
     __init__.py
     test_tpg_implementation.py
 scripts/
-test_tpg_implementation_bundle.sh
+    test_tpg_implementation_bundle.sh
 ```
 
 The tested parameters are provided on the command line in the following order (separated with a dash): 
