@@ -31,6 +31,10 @@ main(int argc, char** argv)
     std::string file_path_input = "";
     app.add_option("-f,--file-path-input", file_path_input, "Path to the input file");
 
+    // Set the output path
+    std::string path_output = ".";
+    app.add_option("-o,--path-output", path_output, "Path to the output directory. Default: .");     
+
     std::string select_algorithm = "SimpleThreshold";
     app.add_option("-a,--algorithm", select_algorithm, "TPG Algorithm (SimpleThreshold / AbsRS). Default: SimpleThreshold");
   
@@ -57,14 +61,13 @@ main(int argc, char** argv)
 
     // Additional options for validation 
     bool repeat_timer = true;
-    app.add_option("-r, --repeat_timer", repeat_timer, "Repeat frame processing until certain time elapsed (true/false). Default: true.");
+    app.add_option("-r, --repeat-timer", repeat_timer, "Repeat frame processing until certain time elapsed (true/false). Default: true.");
 
     std::string out_suffix = "";
-    app.add_option("-s ,--out_suffix", out_suffix, "Append string to output hit file name (e.g. __1). Default: empty string).");
+    app.add_option("-s ,--out-suffix", out_suffix, "Append string to output hit file name (e.g. __1). Default: empty string).");
 
     int num_frames_to_read = -1;
     app.add_option("-n,--num-frames-to-read", num_frames_to_read, "Number of frames to read. Default: -1 (select all frames).");
-
 
 
     CLI11_PARSE(app, argc, argv);
@@ -105,6 +108,7 @@ main(int argc, char** argv)
     emulator->set_CPU_affinity(core_number);
     emulator->initialize();
     emulator->set_out_suffix(out_suffix);
+    emulator->set_path_output(path_output);
 
 
     // Setup the rate limiter for WIBEth frames
@@ -140,35 +144,33 @@ main(int argc, char** argv)
 
       ++wibeth_frame_index;
 
-      if (!repeat_timer) {
+      if (repeat_timer) {
         if (wibeth_frame_index == total_num_frames) {
           continue;
         }
-      }
 
-      // If end of the file is reached, restart the index counter
-      if (wibeth_frame_index == total_num_frames) {
-        wibeth_frame_index = 0;
-	      frame_repeat_index++;
-      }
-
-      if (frame_repeat_index % 100  == 0) {
-        // Calculate elapsed time in seconds  
-        auto now = std::chrono::high_resolution_clock::now();
-        auto elapsed_seconds = std::chrono::duration_cast<std::chrono::seconds>(now - start_test).count();  
-        fmt::print("Elapsed time [s]: {} \n", elapsed_seconds);
-	
-	      frame_repeat_index = 0;        
-
-        // stop the testing after a time a condition
-        if (elapsed_seconds > duration_test) {
-          wibeth_frame_index = total_num_frames;
+        // If end of the file is reached, restart the index counter
+        if (wibeth_frame_index == total_num_frames) {
+          wibeth_frame_index = 0;
+	  frame_repeat_index++;
         }
-      }
 
+        if (frame_repeat_index % 100  == 0) {
+          // Calculate elapsed time in seconds  
+          auto now = std::chrono::high_resolution_clock::now();
+          auto elapsed_seconds = std::chrono::duration_cast<std::chrono::seconds>(now - start_test).count();  
+          fmt::print("Elapsed time [s]: {} \n", elapsed_seconds);
 	
+	  frame_repeat_index = 0;        
 
-      limiter.limit();
+          // stop the testing after a time a condition
+          if (elapsed_seconds > duration_test) {
+            wibeth_frame_index = total_num_frames;
+          }
+        }
+
+        limiter.limit();
+      }
 
     }    
     fmt::print("\n\n=============================== \n");

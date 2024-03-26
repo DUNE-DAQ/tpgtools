@@ -31,14 +31,19 @@ main(int argc, char** argv)
 
     CLI::App app{ "TPG pattern generator using as input and storing output as raw WIBEth ADC binary files" };
 
+    // Set default input frame file
     std::string file_path_input = "";
     app.add_option("-f,--file-path-input", file_path_input, "Path to the input file");
+
+    // Set the output path
+    std::string path_output = ".";
+    app.add_option("-o,--path-output", path_output, "Path to the output directory. Default: . (i.e. pwd)"); 
 
     int num_frames_to_read = -1;
     app.add_option("-n,--num-frames-to-read", num_frames_to_read, "Number of WIBEth frames to read. Default: select all frames.");
 
     size_t input_ch = 0;
-    app.add_option("-i,--input_channel", input_ch, "Input channel number for adding fake hit. Default: 0.");
+    app.add_option("-i,--input_channel", input_ch, "Input channel number for adding fake hit. Default: 0. (max:63)");
 
     int tpg_threshold = 500;
     app.add_option("-t,--tpg-threshold", tpg_threshold, "Value of the TPG threshold. Default value is 500.");
@@ -49,8 +54,8 @@ main(int argc, char** argv)
     bool save_trigprim = false;
     app.add_flag("--save-trigprim", save_trigprim, "Save trigger primitive data");
 
-    int time_tick_offset = 1;
-    app.add_option("-o,--time-tick-offset", time_tick_offset, "Time tick of pattern start. Default: 1 (max:63).");
+    int clock_tick_offset = 1;
+    app.add_option("-c,--clock-tick-offset", clock_tick_offset, "Time tick of pattern start. Default: 1 (max:63).");
 
     std::string out_suffix = "";
     app.add_option("-s ,--out_suffix", out_suffix, "Append string (suffix) to output hit file name");
@@ -94,7 +99,7 @@ main(int argc, char** argv)
     //std::unique_ptr<PattgenInfo<> m_pattgen_info;
     //m_pattgen_info = std::make_unique<PattgenInfo<>(500);
     ph.initialize();
-    ph.m_pattgen_info->time_tick_offset = time_tick_offset;
+    ph.m_pattgen_info->clock_tick_offset = clock_tick_offset;
 
     // pattern generation algorithms
     
@@ -104,18 +109,19 @@ main(int argc, char** argv)
     // =================================================================
     int wibeth_frame_index = 0;
     first_timestamp = input_file.frame(0)->get_timestamp();
-    std::string out_prefix = select_pattern + "_" + std::to_string(time_tick_offset);
+    std::string out_prefix = select_pattern + "_chan_" + std::to_string(input_ch) + "_tick_" + std::to_string(clock_tick_offset);
 
     // Loop over the DUNEWIB Ethernet frames in the file
     std::fstream output_file;
-    output_file.open(out_prefix+"_wibeth_output.bin", std::ios::app | std::ios::binary);
-
+    output_file.open(path_output+"/"+out_prefix+"_wibeth_output.bin", std::ios::app | std::ios::binary);
+  
     ph.m_pattgen_info->num_frames = num_frames_to_read;
     ph.m_pattgen_info->pattern_name = select_pattern;
     ph.m_pattgen_info->first_timestamp = first_timestamp;
     ph.m_pattgen_info->input_ch = input_ch;
     ph.m_pattgen_info->tpg_threshold = tpg_threshold;
     ph.m_pattgen_info->out_prefix = out_prefix;
+    ph.m_pattgen_info->path_output = path_output;
     ph.m_pattgen_info->overwrite_wibeth_header = overwrite_wibeth_header;
     ph.m_pattgen_info->verbose = verbose;
 

@@ -23,6 +23,7 @@ Options:
   --save-adc-data             Save ADC data (first frame only)
   --save-trigprim             Save trigger primitive data
   --parse_trigger_primitive   Parse Trigger Primitive records
+  -s,--num-frames-to-save INT Set the number of frames of ADC data from a TR to save: -1 (all) or 1. Default: 1 (first frame only).
 ```
 
 The command line option `save_adc_data` allows to save the raw ADC values in a txt file after the 14-bit to 16-bit expansion. The command line option `save_trigprim`  allows to save the in a file the Trigger Primitive object information in a txt file. 
@@ -144,12 +145,13 @@ Usage: wibeth_tpg_pattern_generator [OPTIONS]
 Options:
   -h,--help                   Print this help message and exit
   -f,--file-path-input TEXT   Path to the input file
+  -o,--path-output TEXT       Path to the output directory. Default: . (i.e. pwd)
   -n,--num-frames-to-read INT Number of WIBEth frames to read. Default: select all frames.
-  -i,--input_channel UINT     Input channel number for adding fake hit. Default: 0.
+  -i,--input_channel UINT     Input channel number for adding fake hit. Default: 0. (max:63)
   -t,--tpg-threshold INT      Value of the TPG threshold. Default value is 500.
   --save-adc-data             Save ADC data (first frame only)
   --save-trigprim             Save trigger primitive data
-  -o,--time-tick-offset INT   Time tick of pattern start. Default: 1 (max:63).
+  -c,--clock-tick-offset INT  Time tick of pattern start. Default: 1 (max:63).
   -s,--out_suffix TEXT        Append string (suffix) to output hit file name
   -p,--select-pattern TEXT    Test pattern name (patt_golden, patt_pulse, patt_square, patt_square_left, patt_square_right). Default: patt_golden.
   -w,--overwrite-wibeth-header
@@ -161,6 +163,7 @@ Example of usage:
 ```sh
 rm patt_golden_1_wibeth_output.bin patt_golden_1_wibeth_output_pedsub.bin patt_golden_1_wibeth_output_pedsub_hits.txt
 wibeth_tpg_pattern_generator -f wibeth_output_all_zeros.bin -n 2 -i 0 -t 499 -o 1 -p patt_golden --save-trigprim -s __1 -v -w 
+wibeth_tpg_pattern_generator -f wibeth_output_all_zeros.bin -o . --save-trigprim -w -n 2 -t 64 -i 0 -c 63 -p patt_golden -s __63
 ```
 
 ### Workload emulator
@@ -176,6 +179,7 @@ Usage: wibeth_tpg_workload_emulator [OPTIONS]
 Options:
   -h,--help                   Print this help message and exit
   -f,--file-path-input TEXT   Path to the input file
+  -o,--path-output TEXT       Path to the output directory. Default: .
   -a,--algorithm TEXT         TPG Algorithm (SimpleThreshold / AbsRS). Default: SimpleThreshold
   -i,--implementation TEXT    TPG implementation (AVX / NAIVE). Default: AVX
   -m,--channel-map TEXT       Select a valid channel map: None, VDColdboxChannelMap, ProtoDUNESP1ChannelMap, PD2HDChannelMap, HDColdboxChannelMap, FiftyLChannelMap
@@ -184,16 +188,84 @@ Options:
   -c,--core INT               Set core number of the executing TPG thread. Default value is 0.
   --save-adc-data             Save ADC data (first frame only)
   --save-trigprim             Save trigger primitive data
-  -r,--repeat_timer BOOLEAN   Repeat frame processing until certain time elapsed (true/false). Default: true.
-  -s,--out_suffix TEXT        Append string to output hit file name (e.g. __1). Default: empty string).
+  -r,--repeat-timer BOOLEAN   Repeat frame processing until certain time elapsed (true/false). Default: true.
+  -s,--out-suffix TEXT        Append string to output hit file name (e.g. __1). Default: empty string).
   -n,--num-frames-to-read INT Number of frames to read. Default: -1 (select all frames).
 ```
 
-Example of usage:
+Example of usage: 
 ```sh
-$ wibeth_tpg_workload_emulator -f patt_golden_1_wibeth_output.bin -r false -a SimpleThreshold -i NAIVE -n 2 -t 64  --save-trigprim -s __1
-$ wibeth_tpg_workload_emulator -f patt_golden_1_wibeth_output.bin -r false -a SimpleThreshold -i AVX -n 2 -t 64  --save-trigprim -s __1
+$ wibeth_tpg_pattern_generator -f /cvmfs/dunedaq.opensciencegrid.org/assets/files/d/d/1/wibeth_output_all_zeros.bin -o . --save-trigprim -w -n 2 -t 64 -i 0 -c 63 -p patt_golden -s __63
+$ tpg_workload_emulator -f patt_golden_chan_0_tick_63_wibeth_output.bin -r false -a SimpleThreshold -i NAIVE  -n 2 -t 499 -m ProtoDUNESP1ChannelMap
 ```
+
+Please note, when using `wibeth_output_all_zeros.bin` input file from the asset repository, the `-w` option is needed to overwrite the header information. The generated pattern file, `patt_golden_chan_0_tick_63_wibeth_output.bin`, is then used as input to the `tpg_workload_emulator` app.  
+
+More examples of usage:
+```sh
+$ wibeth_tpg_workload_emulator -f patt_golden_chan_0_tick_1_wibeth_output.bin -r false -a SimpleThreshold -i NAIVE -n 2 -t 64  --save-trigprim -s __1
+$ wibeth_tpg_workload_emulator -f patt_golden_chan_0_tick_1_wibeth_output.bin -r false -a SimpleThreshold -i AVX -n 2 -t 64  --save-trigprim -s __1
+wibeth_tpg_workload_emulator -f patt_golden_chan_0_tick_63_wibeth_output.bin -r false -m VDColdboxChannelMap --save-trigprim -n 2 -t 64 -c 63 -a AbsRS -i AVX
+```
+
+### Running `pytest`
+
+The pytest framework is used to streamline the validation process and to create an automated workflow using the validation tools described in this section. 
+
+One of the standard type of tests performed during TPG algorithm development is the comparison of the NAIVE and AVX implementation of the algorithm under study. However, existing algorithms should also be tested regularly to ensure readout and other code changes do not break the TPG functionality. 
+
+The integration of `pytest` in the tpgtools repositor has the following directory structure:
+```sh
+tpgtools/
+pytest.ini
+conftest.py
+tests/
+    __init__.py
+    test_tpg_implementation.py
+scripts/
+    test_tpg_implementation_bundle.sh
+```
+
+The tested parameters are provided on the command line in the following order (separated with a dash): 
+```sh
+pattern_name-channel_number-clock_tick-threshold-algorithm e.g. patt_golden-0-1-64-2-SimpleThreshold
+where
+    pattern_name   = patt_golden, patt_square, patt_square_left, patt_square_right
+    channel_number = [0, 63]
+    clock_tick     = [1, 63]
+    threshold      = 10, 64, 499
+    algorithm      = SimpleThreshold, AbsRS
+```
+
+Regarding the patterns, For example, the `patt_square` which creates a constant-ADC pattern, few ticks wide, on a given channel, has a fixed amplitude of 500. For `patt_golden`, the sequence of ADC values is: 500, 502, 504, 505, 506, 505, 504, 502, 500.
+
+
+To run the full suite of tests use:
+```sh
+addopts = --quiet -ra  (in pytest.ini)
+pytest -k "test_tuple_params" tests
+```
+As the `pytest` script currently scans/tests all parameters sequentially, it takes too long to complete the test job. Therefore the parameters are provided explicitly in order to run only a subset of all tests. The examples below show how to start a test from the command line or to run the default subset of tests.
+
+
+#### Example to run a single test
+```sh
+cd sourcecode/tpgtools
+export PYTEST_DISABLE_PLUGIN_AUTOLOAD=1
+pytest -k "test_all_params[patt_golden-0-1-64-2-SimpleThreshold]" tests
+pytest --printout=more -k "test_all_params[patt_golden-0-1-64-2-AbsRS]" tests
+```
+
+This test gives immediate feedback as to whether the test passed or failed. The output from the test is stored in `/tmp/pytest-of-<user>` on the machine where the test was run. 
+
+#### Example to run the default test bundle 
+```sh
+cd sourcecode/tpgtools/scripts
+export PYTEST_DISABLE_PLUGIN_AUTOLOAD=1
+./test_tpg_implementation_bundle.sh -d | tee pytest_log.txt
+```
+
+This test takes a about 15 minutes to complete and provides a reasonable coverage of the parameters. In a next version we aim to reduce the time and provide a one-line summary of all tests. 
 
 ## Notes
 - The tools and scripts developed have been used for TPG related activities. They have not been generalized to cover all use-cases. If there is a need or feature request, ask mainteners of the repository.  

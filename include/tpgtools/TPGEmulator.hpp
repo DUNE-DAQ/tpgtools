@@ -89,6 +89,9 @@ public:
     m_out_suffix = out_suffix;
   }
 
+  void set_path_output(std::string path_output) {
+    m_path_output = path_output;
+  }
 
 
   bool m_save_adc_data = false; 
@@ -98,6 +101,7 @@ public:
   std::string m_select_algorithm = "";
   std::string m_select_channel_map = "";
   std::string m_out_suffix = "";
+  std::string m_path_output = ".";
 
   unsigned int m_total_hits = 0;
   unsigned int m_total_hits_trigger_primitive = 0;
@@ -149,7 +153,8 @@ public:
 using tpg_emulator_base::tpg_emulator_base;
 
 void extract_hits(uint16_t* output_location, uint64_t timestamp,
-                      bool save_trigprim, std::string out_suffix); 
+                      bool save_trigprim, std::string path_output,
+		      std::string out_suffix); 
 
 void execute_tpg(const dunedaq::fdreadoutlibs::types::DUNEWIBEthTypeAdapter* fp);
 
@@ -171,7 +176,8 @@ public:
 using tpg_emulator_base::tpg_emulator_base;
 
 void extract_hits(uint16_t* output_location, uint64_t timestamp,
-                      bool save_trigprim, std::string out_suffix);
+                      bool save_trigprim, std::string path_output,
+		      std::string out_suffix);
 
 void execute_tpg(const dunedaq::fdreadoutlibs::types::DUNEWIBEthTypeAdapter* fp);
 
