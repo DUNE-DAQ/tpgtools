@@ -44,7 +44,7 @@ def create_channel_map_array(which_channel_map="APA"):
 
 
 # Function to save tps in a list
-def save_tps_array(filename, max_tps):
+def save_tps_array(filename, max_tps=-1):
     if filename.endswith('.txt'):
         
         # offset to have the first TP at t=0, handle with care
@@ -68,10 +68,15 @@ def save_tps_array(filename, max_tps):
                        ('flag', int)])
         
         # Fill all_tps, that is a numpy array, with the arrays of the variables
+        if max_tps == -1:
+           print ("The number of TPs to save is not specified, all TPs will be saved") 
         all_tps = np.loadtxt(filename, dtype=dt, max_rows=max_tps, usecols=(0,1,2,3,4,5,6,7,8,9,10))
         
         # sort the list by time_start
         all_tps.sort(order='time_start')
+        
+        if max_tps == -1:
+            max_tps = len(all_tps)
                 
         print ("Your ", max_tps, " TPs have been saved in a numpy array and sorted by time start")
         print (" ")

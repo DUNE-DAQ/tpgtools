@@ -87,18 +87,22 @@ def plotTimePeak(tps_lists, file_names, superimpose=False, quantile=1, y_min=0, 
             fig.set_title(f"Time Peak, file {this_filename}", fontweight='bold')
             if show:
                 plt.show()
-            plt.savefig(f"{output_folder}{this_filename}_timePeak_{output_suffix}{image_format}")
+            plot_path = f"{output_folder}{this_filename}_timePeak_{output_suffix}{image_format}"
+            plt.savefig(plot_path)
 
     if superimpose:
         fig.legend(prop=legend_properties)
         plt.grid(grid_in_superimpose)
         if show:
             plt.show()
-        plt.savefig(f"{output_folder}superimposed_timePeak_{output_suffix}{image_format}")
+        plot_path = f"{output_folder}superimposed_timePeak_{output_suffix}{image_format}"
+        plt.savefig(plot_path)
         
     del time_peak # free memory
-
-    return
+    plt.close()
+    
+    # return the plot path
+    return plot_path
 
 
 def plotTimeOverThreshold(tps_lists, file_names, superimpose=False, quantile=1, y_min=0, y_max=None, output_folder=None, output_suffix="", show=False):
@@ -153,19 +157,23 @@ def plotTimeOverThreshold(tps_lists, file_names, superimpose=False, quantile=1, 
             fig.set_title(f"Time over Threshold, file {this_filename}", fontweight='bold')
             if show:
                 plt.show()
-            plt.savefig(f"{output_folder}{this_filename}_timeOverThreshold_{output_suffix}{image_format}")
+            plot_path = f"{output_folder}{this_filename}_timeOverThreshold_{output_suffix}{image_format}"
+            plt.savefig(plot_path)
 
     if superimpose:
         fig.legend(prop=legend_properties)
         plt.grid(grid_in_superimpose)
         if show:
             plt.show()
-        plt.savefig(f"{output_folder}superimposed_timeOverThreshold_{output_suffix}{image_format}")
+        plot_path = f"{output_folder}superimposed_timeOverThreshold_{output_suffix}{image_format}"
+        plt.savefig(plot_path)
         
     # free memory
     del time_over_threshold
-
-    return
+    plt.close()
+    
+    # return the plot path
+    return plot_path
 
 
 def plotChannel(tps_lists, file_names, superimpose=False, x_min=0, x_max=None, y_min=0, y_max=None, output_folder=None, output_suffix="", show=False):
@@ -222,19 +230,23 @@ def plotChannel(tps_lists, file_names, superimpose=False, x_min=0, x_max=None, y
             fig.set_title(f"Channel, file {this_filename}", fontweight='bold')
             if show:
                 plt.show()
-            plt.savefig(f"{output_folder}{this_filename}_channel_{output_suffix}{image_format}")
-            
+            plot_path = f"{output_folder}{this_filename}_channel_{output_suffix}{image_format}"
+            plt.savefig(plot_path)
+                        
     if superimpose:
         fig.legend(prop=legend_properties)
         plt.grid(grid_in_superimpose)
         if show:
             plt.show()
-        plt.savefig(f"{output_folder}superimposed_channel_{output_suffix}{image_format}")
+        plot_path = f"{output_folder}superimposed_channel_{output_suffix}{image_format}"
+        plt.savefig(plot_path)
     
     del channel_all_files # free memory
     del channel # free memory
-
-    return            
+    plt.close()
+    
+    # return the plot path
+    return plot_path
 
 
 def plotADCIntegral(tps_lists, file_names, superimpose=False, quantile=1, y_min=0, y_max=None, output_folder=None, output_suffix="", show=False):
@@ -291,19 +303,23 @@ def plotADCIntegral(tps_lists, file_names, superimpose=False, quantile=1, y_min=
             fig.set_title(f"ADC Integral, file {this_filename}", fontweight='bold')
             if show:
                 plt.show()
-            plt.savefig(f"{output_folder}{this_filename}_adcIntegral_{output_suffix}{image_format}")
+            plot_path = f"{output_folder}{this_filename}_adcIntegral_{output_suffix}{image_format}"
+            plt.savefig(plot_path)
             
     if superimpose:
         fig.legend(prop=legend_properties)
         plt.grid(grid_in_superimpose)
         if show:
             plt.show()
-        plt.savefig(f"{output_folder}superimposed_adcIntegral_{output_suffix}{image_format}")
+        plot_path = f"{output_folder}superimposed_adcIntegral_{output_suffix}{image_format}"
+        plt.savefig(plot_path)
         
     
     del adc_integral # free memory
+    plt.close()
     
-    return
+    # return the plot path
+    return plot_path
 
 
 def plotADCPeak(tps_lists, file_names, superimpose=False, quantile=1, y_min=0, y_max=None, output_folder=None, output_suffix="", show=False):
@@ -358,16 +374,20 @@ def plotADCPeak(tps_lists, file_names, superimpose=False, quantile=1, y_min=0, y
             fig.set_title(f"ADC Peak, file {this_filename}", fontweight='bold')
             if show:
                 plt.show()
-            plt.savefig(f"{output_folder}{this_filename}_adcPeak_{output_suffix}{image_format}")
+            plot_path = f"{output_folder}{this_filename}_adcPeak_{output_suffix}{image_format}"
+            plt.savefig(plot_path)
             
     if superimpose:
         fig.legend(prop=legend_properties)
         plt.grid(grid_in_superimpose)
         if show:
             plt.show()
-        plt.savefig(f"{output_folder}superimposed_adcPeak_{output_suffix}{image_format}")
-        
-    return
+        plot_path = f"{output_folder}superimposed_adcPeak_{output_suffix}{image_format}"
+        plt.savefig(plot_path)
+    
+    plt.close()
+    # return the plot path
+    return plot_path
 
 
 def plotDetId(tps_lists, file_names, superimpose=False, y_min=0, y_max=None, output_folder=None, output_suffix="", show=False):
@@ -421,15 +441,20 @@ def plotDetId(tps_lists, file_names, superimpose=False, y_min=0, y_max=None, out
         
         if not superimpose:
             fig.set_title(f"DetId, file {this_filename}", fontweight='bold')
-            plt.savefig(f"{output_folder}{this_filename}_detid_{output_suffix}{image_format}")
+            plot_path = f"{output_folder}{this_filename}_detid_{output_suffix}{image_format}"
+            plt.savefig(plot_path)
             if show:
                 plt.show()
             
     if superimpose:
         fig.legend(prop=legend_properties)
         plt.grid(grid_in_superimpose)
-        plt.savefig(f"{output_folder}superimposed_detid_{output_suffix}{image_format}")
+        plot_path = f"{output_folder}superimposed_detid_{output_suffix}{image_format}"
+        plt.savefig(plot_path)
         if show:
             plt.show()
-        
-    return
+    
+    plt.close()
+    
+    # return the plot path
+    return plot_path
