@@ -50,6 +50,15 @@ main(int argc, char** argv)
     int tpg_threshold = 500;
     app.add_option("-t,--tpg-threshold", tpg_threshold, "Value of the TPG threshold. Default value is 500.");
 
+    int collection_threshold = tpg_threshold;
+    app.add_option("-Z,--collection", collection_threshold, "Value of the TPG threshold. Default value is tpg_threshold.");
+
+    int induction1_threshold = tpg_threshold;
+    app.add_option("-U,--induction-one", induction1_threshold, "Value of the TPG threshold. Default value is tpg_threshold.");
+
+    int induction2_threshold = tpg_threshold;
+    app.add_option("-V,--induction-two", induction2_threshold, "Value of the TPG threshold. Default value is tpg_threshold.");
+
     int core_number = 0;
     app.add_option("-c,--core", core_number, "Set core number of the executing TPG thread. Default value is 0.");
 
@@ -104,7 +113,7 @@ main(int argc, char** argv)
       throw tpgtools::InvalidImplementation(ERS_HERE, select_implementation);  
     }
     
-    emulator->set_tpg_threshold(tpg_threshold);
+    emulator->set_tpg_thresholds(collection_threshold, induction1_threshold, induction2_threshold);
     emulator->set_CPU_affinity(core_number);
     emulator->initialize();
     emulator->set_out_suffix(out_suffix);

@@ -58,7 +58,18 @@ public:
     if (!m_select_channel_map.empty()) {
       m_register_channel_map = swtpg_wibeth::get_register_to_offline_channel_map_wibeth(frame, m_channel_map);             
       for (size_t i = 0; i < swtpg_wibeth::NUM_REGISTERS_PER_FRAME * swtpg_wibeth::SAMPLES_PER_REGISTER; ++i) {
-        m_register_channels[i] = m_register_channel_map.channel[i];                
+        auto chan_value = m_register_channel_map.channel[i];
+
+        m_register_channels[i] = chan_value;
+        m_register_memory_factor[i] = m_tpg_rs_memory_factor;
+        m_planes[i] = m_channel_map->get_plane_from_offline_channel(chan_value);
+        if (m_channel_map->get_plane_from_offline_channel(chan_value) == 2) { // Collection
+          m_tpg_threshold[i] = m_collection_threshold;
+        } else if (m_channel_map->get_plane_from_offline_channel(chan_value) == 1) { // Induction 2
+          m_tpg_threshold[i] = m_induction2_threshold;
+        } else { // Must be Induction 1
+          m_tpg_threshold[i] = m_induction1_threshold;
+        }
       }
     } else {
       // If no channel map is not selected use the values from 0 to 63
@@ -69,8 +80,10 @@ public:
   void save_raw_data(swtpg_wibeth::MessageRegisters register_array,
                      uint64_t t0, int channel_number, std::string algo);
 
-  void set_tpg_threshold(int tpg_threshold){
-    m_tpg_threshold = tpg_threshold;
+  void set_tpg_thresholds(int collection_threshold, int induction1_threshold, int induction2_threshold){
+    m_collection_threshold = collection_threshold;
+    m_induction1_threshold = induction1_threshold;
+    m_induction2_threshold = induction2_threshold;
   }
 
   void set_CPU_affinity(int core_number) {
@@ -111,7 +124,13 @@ public:
   dunedaq::trgdataformats::TriggerPrimitive::Algorithm m_tp_algo = dunedaq::trgdataformats::TriggerPrimitive::Algorithm::kUnknown; 
 
 
-  int m_tpg_threshold = 500; //default value 
+  std::array<uint16_t, swtpg_wibeth::NUM_REGISTERS_PER_FRAME * swtpg_wibeth::SAMPLES_PER_REGISTER>
+    m_tpg_threshold = {10000}; // Default value.
+  std::array<uint16_t, swtpg_wibeth::NUM_REGISTERS_PER_FRAME * swtpg_wibeth::SAMPLES_PER_REGISTER>
+    m_planes; // Default value.
+  int m_collection_threshold = 150;
+  int m_induction1_threshold = 150;
+  int m_induction2_threshold = 150;
   int m_CPU_core = 0;
   int m_num_frames_to_save = 1;
 

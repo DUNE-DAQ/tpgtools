@@ -49,6 +49,16 @@ main(int argc, char** argv)
     int tpg_threshold = 500;
     app.add_option("-t,--tpg-threshold", tpg_threshold, "Value of the TPG threshold. Default value is 500.");
 
+    // <plane>_threshold gets updated to tpg_threshold if still -1 after parsing.
+    int collection_threshold = -1;
+    app.add_option("-Z,--collection", collection_threshold, "Value of the collection TPG threshold. Default value is tpg_threshold.");
+
+    int induction1_threshold = -1;
+    app.add_option("-U,--induction-one", induction1_threshold, "Value of the induction 1 TPG threshold. Default value is tpg_threshold.");
+
+    int induction2_threshold = -1;
+    app.add_option("-V,--induction-two", induction2_threshold, "Value of the induction 2 TPG threshold. Default value is tpg_threshold.");
+
     int core_number = 0;
     app.add_option("-c,--core", core_number, "Set core number of the executing TPG thread. Default value is 0.");
 
@@ -66,6 +76,12 @@ main(int argc, char** argv)
 
     CLI11_PARSE(app, argc, argv);
 
+    // Default the threshold.
+    collection_threshold = collection_threshold == -1 ? tpg_threshold : collection_threshold;
+    induction1_threshold = induction1_threshold == -1 ? tpg_threshold : induction1_threshold;
+    induction2_threshold = induction2_threshold == -1 ? tpg_threshold : induction2_threshold;
+
+
     // =================================================================
     //                       Setup the TPG emulator
     // =================================================================
@@ -81,7 +97,7 @@ main(int argc, char** argv)
       throw tpgtools::InvalidImplementation(ERS_HERE, select_implementation);  
     }
 
-    emulator->set_tpg_threshold(tpg_threshold);
+    emulator->set_tpg_thresholds(collection_threshold, induction1_threshold, induction2_threshold);
     emulator->set_CPU_affinity(core_number);
     emulator->set_num_frames_to_save(num_frames_to_save);
     emulator->initialize();
