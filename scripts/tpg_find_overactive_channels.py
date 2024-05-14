@@ -192,12 +192,13 @@ def main(file, detector, fragment_index, num_fragments, limit, tukey_k, verbose)
             print("=" * 60)
             continue
 
+        channel_offset = bins[0] + 0.5  # Get the offset of the channel number.
         print(f"Channels Above Limit ({limit}):\n",
-              np.array2string(np.where(hist > limit)[0], separator=',', threshold=np.inf))
+              np.array2string((np.where(hist > limit)[0] + channel_offset).astype('int'), separator=',', threshold=np.inf))
 
         tukeys_fence = get_tukey_upper_fence(hist, tukey_k)
         print(f"Channels Above Tukey's Fence ({tukeys_fence}):\n",
-              np.array2string(np.where(hist > tukeys_fence)[0], separator=',', threshold=np.inf))
+              np.array2string((np.where(hist > tukeys_fence)[0] + channel_offset).astype('int'), separator=',', threshold=np.inf))
 
         plot_channel_histogram(hist, bins, limit, tukeys_fence, tp_reader.run_id, tp_reader.file_index, det_elem)
 
