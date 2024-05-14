@@ -19,6 +19,9 @@ Options:
   -m,--channel-map TEXT       Select a valid channel map: None, VDColdboxChannelMap, ProtoDUNESP1ChannelMap, PD2HDChannelMap, HDColdboxChannelMap, FiftyLChannelMap
   -n,--num-TR-to-read INT     Number of Trigger Records to read. Default: select all TRs.
   -t,--tpg-threshold INT      Value of the TPG threshold. Default value is 500.
+  -Z,--collection INT         Value of the TPG threshold. Default value is tpg_threshold.
+  -U,--induction-one INT      Value of the TPG threshold. Default value is tpg_threshold.
+  -V,--induction-two INT      Value of the TPG threshold. Default value is tpg_threshold.
   -c,--core INT               Set core number of the executing TPG thread. Default value is 0.
   --save-adc-data             Save ADC data (first frame only)
   --save-trigprim             Save trigger primitive data
@@ -32,6 +35,7 @@ Example of usage:
 ```sh
 $ wibeth_tpg_algorithms_emulator -f swtest_run000035_0000_dataflow0_datawriter_0_20231102T083908.hdf5  -a SimpleThreshold -m PD2HDChannelMap -t 500 --save-trigprim --parse_trigger_primitive
 $ wibeth_tpg_algorithms_emulator -f swtest_run000035_0000_dataflow0_datawriter_0_20231102T083908.hdf5  -a AbsRS -m PD2HDChannelMap -t 500 --save-adc-data  -n 5 
+$ wibeth_tpg_algorithms_emulator -f swtest_run000035_0000_dataflow0_datawriter_0_20231102T083908.hdf5  -a AbsRS -m PD2HDChannelMap -t 500 --save-adc-data  -n 5 -Z 200
 ```
 
 
@@ -185,6 +189,9 @@ Options:
   -m,--channel-map TEXT       Select a valid channel map: None, VDColdboxChannelMap, ProtoDUNESP1ChannelMap, PD2HDChannelMap, HDColdboxChannelMap, FiftyLChannelMap
   -d,--duration-test INT      Duration (in seconds) to run the test. Default value is 120.
   -t,--tpg-threshold INT      Value of the TPG threshold. Default value is 500.
+  -Z,--collection INT         Value of the TPG threshold. Default value is tpg_threshold.
+  -U,--induction-one INT      Value of the TPG threshold. Default value is tpg_threshold.
+  -V,--induction-two INT      Value of the TPG threshold. Default value is tpg_threshold.
   -c,--core INT               Set core number of the executing TPG thread. Default value is 0.
   --save-adc-data             Save ADC data (first frame only)
   --save-trigprim             Save trigger primitive data
@@ -196,7 +203,7 @@ Options:
 Example of usage: 
 ```sh
 $ wibeth_tpg_pattern_generator -f /cvmfs/dunedaq.opensciencegrid.org/assets/files/d/d/1/wibeth_output_all_zeros.bin -o . --save-trigprim -w -n 2 -t 64 -i 0 -c 63 -p patt_golden -s __63
-$ tpg_workload_emulator -f patt_golden_chan_0_tick_63_wibeth_output.bin -r false -a SimpleThreshold -i NAIVE  -n 2 -t 499 -m ProtoDUNESP1ChannelMap
+$ wibeth_tpg_workload_emulator -f patt_golden_chan_0_tick_63_wibeth_output.bin -r false -a SimpleThreshold -i NAIVE  -n 2 -t 499 -m ProtoDUNESP1ChannelMap -Z 200
 ```
 
 Please note, when using `wibeth_output_all_zeros.bin` input file from the asset repository, the `-w` option is needed to overwrite the header information. The generated pattern file, `patt_golden_chan_0_tick_63_wibeth_output.bin`, is then used as input to the `tpg_workload_emulator` app.  
@@ -205,7 +212,7 @@ More examples of usage:
 ```sh
 $ wibeth_tpg_workload_emulator -f patt_golden_chan_0_tick_1_wibeth_output.bin -r false -a SimpleThreshold -i NAIVE -n 2 -t 64  --save-trigprim -s __1
 $ wibeth_tpg_workload_emulator -f patt_golden_chan_0_tick_1_wibeth_output.bin -r false -a SimpleThreshold -i AVX -n 2 -t 64  --save-trigprim -s __1
-wibeth_tpg_workload_emulator -f patt_golden_chan_0_tick_63_wibeth_output.bin -r false -m VDColdboxChannelMap --save-trigprim -n 2 -t 64 -c 63 -a AbsRS -i AVX
+$ wibeth_tpg_workload_emulator -f patt_golden_chan_0_tick_63_wibeth_output.bin -r false -m VDColdboxChannelMap --save-trigprim -n 2 -t 64 -c 63 -a AbsRS -i AVX
 ```
 
 ### Running `pytest`
