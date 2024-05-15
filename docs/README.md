@@ -19,9 +19,9 @@ Options:
   -m,--channel-map TEXT       Select a valid channel map: None, VDColdboxChannelMap, ProtoDUNESP1ChannelMap, PD2HDChannelMap, HDColdboxChannelMap, FiftyLChannelMap
   -n,--num-TR-to-read INT     Number of Trigger Records to read. Default: select all TRs.
   -t,--tpg-threshold INT      Value of the TPG threshold. Default value is 500.
-  -Z,--collection INT         Value of the TPG threshold. Default value is tpg_threshold.
-  -U,--induction-one INT      Value of the TPG threshold. Default value is tpg_threshold.
-  -V,--induction-two INT      Value of the TPG threshold. Default value is tpg_threshold.
+  -Z,--plane-two INT          Value of the TPG threshold. Default value is tpg_threshold.
+  -V,--plane-one INT          Value of the TPG threshold. Default value is tpg_threshold.
+  -U,--plane-zero INT         Value of the TPG threshold. Default value is tpg_threshold.
   -c,--core INT               Set core number of the executing TPG thread. Default value is 0.
   --save-adc-data             Save ADC data (first frame only)
   --save-trigprim             Save trigger primitive data
@@ -188,9 +188,9 @@ Options:
   -m,--channel-map TEXT       Select a valid channel map: None, VDColdboxChannelMap, ProtoDUNESP1ChannelMap, PD2HDChannelMap, HDColdboxChannelMap, FiftyLChannelMap
   -d,--duration-test INT      Duration (in seconds) to run the test. Default value is 120.
   -t,--tpg-threshold INT      Value of the TPG threshold. Default value is 500.
-  -Z,--collection INT         Value of the TPG threshold. Default value is tpg_threshold.
-  -U,--induction-one INT      Value of the TPG threshold. Default value is tpg_threshold.
-  -V,--induction-two INT      Value of the TPG threshold. Default value is tpg_threshold.
+  -Z,--plane-two INT          Value of the TPG threshold. Default value is tpg_threshold.
+  -V,--plane-one INT          Value of the TPG threshold. Default value is tpg_threshold.
+  -U,--plane-zero INT         Value of the TPG threshold. Default value is tpg_threshold.
   -c,--core INT               Set core number of the executing TPG thread. Default value is 0.
   --save-adc-data             Save ADC data (first frame only)
   --save-trigprim             Save trigger primitive data
