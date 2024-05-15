@@ -1,13 +1,13 @@
 # tpgtools 
-Here is a short summary of the applications and scripts available in `tpgtools` 
+Here is a short summary of the applications and scripts available in `tpgtools`
 
 ## Emulator
 
-`wibeth_tpg_algorithms_emulator` is an emulator application for TPG algorithms. It takes as input a Trigger Record file (`*.hdf5` file) and it will execute the selected TPG algorithm on the Trigger Record data. The application is single threaded, pinned to core 0. The core number is configurable.   
+`wibeth_tpg_algorithms_emulator` is an emulator application for TPG algorithms. It takes as input a Trigger Record file (`*.hdf5` file) and it will execute the selected TPG algorithm on the Trigger Record data. The application is single threaded, pinned to core 0. The core number is configurable.
 
 To use the tool use the following:
 ```sh
-$ wibeth_tpg_algorithms_emulator --help 
+$ wibeth_tpg_algorithms_emulator --help
 TPG algorithms emulator using input from Trigger Record files
 Usage: wibeth_tpg_algorithms_emulator [OPTIONS]
 
@@ -19,9 +19,17 @@ Options:
   -m,--channel-map TEXT       Select a valid channel map: None, VDColdboxChannelMap, ProtoDUNESP1ChannelMap, PD2HDChannelMap, HDColdboxChannelMap, FiftyLChannelMap
   -n,--num-TR-to-read INT     Number of Trigger Records to read. Default: select all TRs.
   -t,--tpg-threshold INT      Value of the TPG threshold. Default value is 500.
-  -Z,--plane-two INT          Value of the TPG threshold. Default value is tpg_threshold.
-  -V,--plane-one INT          Value of the TPG threshold. Default value is tpg_threshold.
-  -U,--plane-zero INT         Value of the TPG threshold. Default value is tpg_threshold.
+  -Z,--plane-two INT          Value of the plane 2 TPG threshold. Default value is tpg_threshold.
+  -V,--plane-one INT          Value of the plane 1 TPG threshold. Default value is tpg_threshold.
+  -U,--plane-zero INT         Value of the plane 0 TPG threshold. Default value is tpg_threshold.
+  --rs-memory FLOAT           Value of the general tpg_rs_memory_factor.
+  --rs-memory-two FLOAT       Value of the plane 2 TPG rs_memory_factor. Default value is tpg_rs_memory_factor.
+  --rs-memory-one FLOAT       Value of the plane 1 TPG rs_memory_factor. Default value is tpg_rs_memory_factor.
+  --rs-memory-zero FLOAT      Value of the plane 0 TPG rs_memory_factor. Default value is tpg_rs_memory_factor.
+  --rs-scale INT              Value of the general tpg_rs_scale_factor.
+  --rs-scale-two INT          Value of the plane 2 TPG rs_scale_factor. Default value is tpg_rs_scale_factor.
+  --rs-scale-one INT          Value of the plane 1 TPG rs_scale_factor. Default value is tpg_rs_scale_factor.
+  --rs-scale-zero INT         Value of the plane 0 TPG rs_scale_factor. Default value is tpg_rs_scale_factor.
   -c,--core INT               Set core number of the executing TPG thread. Default value is 0.
   --save-adc-data             Save ADC data (first frame only)
   --save-trigprim             Save trigger primitive data
@@ -29,13 +37,14 @@ Options:
   -s,--num-frames-to-save INT Set the number of frames of ADC data from a TR to save: -1 (all) or 1. Default: 1 (first frame only).
 ```
 
-The command line option `save_adc_data` allows to save the raw ADC values in a txt file after the 14-bit to 16-bit expansion. The command line option `save_trigprim`  allows to save the in a file the Trigger Primitive object information in a txt file. 
+The command line option `save_adc_data` allows to save the raw ADC values in a txt file after the 14-bit to 16-bit expansion. The command line option `save_trigprim`  allows to save the in a file the Trigger Primitive object information in a txt file.
 
-Example of usage: 
+Example of usage:
 ```sh
 $ wibeth_tpg_algorithms_emulator -f swtest_run000035_0000_dataflow0_datawriter_0_20231102T083908.hdf5  -a SimpleThreshold -m PD2HDChannelMap -t 500 --save-trigprim --parse_trigger_primitive
 $ wibeth_tpg_algorithms_emulator -f swtest_run000035_0000_dataflow0_datawriter_0_20231102T083908.hdf5  -a AbsRS -m PD2HDChannelMap -t 500 --save-adc-data  -n 5 
 $ wibeth_tpg_algorithms_emulator -f swtest_run000035_0000_dataflow0_datawriter_0_20231102T083908.hdf5  -a AbsRS -m PD2HDChannelMap -t 500 --save-adc-data  -n 5 -Z 200
+$ wibeth_tpg_algorithms_emulator -f swtest_run000035_0000_dataflow0_datawriter_0_20231102T083908.hdf5  -a AbsRS -m PD2HDChannelMap -t 500 --save-adc-data  -n 5 -Z 200 --rs-memory 0.9 --rs-memory-two 0 --rs-scale-two 1
 ```
 
 
@@ -192,6 +201,14 @@ Options:
   -Z,--plane-two INT          Value of the TPG threshold. Default value is tpg_threshold.
   -V,--plane-one INT          Value of the TPG threshold. Default value is tpg_threshold.
   -U,--plane-zero INT         Value of the TPG threshold. Default value is tpg_threshold.
+  --rs-memory FLOAT           Value of the general tpg_rs_memory_factor.
+  --rs-memory-two FLOAT       Value of the plane 2 TPG rs_memory_factor. Default value is tpg_rs_memory_factor.
+  --rs-memory-one FLOAT       Value of the plane 1 TPG rs_memory_factor. Default value is tpg_rs_memory_factor.
+  --rs-memory-zero FLOAT      Value of the plane 0 TPG rs_memory_factor. Default value is tpg_rs_memory_factor.
+  --rs-scale INT              Value of the general tpg_rs_scale_factor.
+  --rs-scale-two INT          Value of the plane 2 TPG rs_scale_factor. Default value is tpg_rs_scale_factor.
+  --rs-scale-one INT          Value of the plane 1 TPG rs_scale_factor. Default value is tpg_rs_scale_factor.
+  --rs-scale-zero INT         Value of the plane 0 TPG rs_scale_factor. Default value is tpg_rs_scale_factor.
   -c,--core INT               Set core number of the executing TPG thread. Default value is 0.
   --save-adc-data             Save ADC data (first frame only)
   --save-trigprim             Save trigger primitive data
@@ -204,6 +221,7 @@ Example of usage:
 ```sh
 $ wibeth_tpg_pattern_generator -f /cvmfs/dunedaq.opensciencegrid.org/assets/files/d/d/1/wibeth_output_all_zeros.bin -o . --save-trigprim -w -n 2 -t 64 -i 0 -c 63 -p patt_golden -s __63
 $ wibeth_tpg_workload_emulator -f patt_golden_chan_0_tick_63_wibeth_output.bin -r false -a SimpleThreshold -i NAIVE  -n 2 -t 499 -m ProtoDUNESP1ChannelMap -Z 200
+$ wibeth_tpg_workload_emulator -f patt_golden_chan_0_tick_63_wibeth_output.bin -r false -a AbsRS -i NAIVE  -n 2 -t 499 -m ProtoDUNESP1ChannelMap -Z 200 -U 100 --rs-memory-two 0 --rs-scale-two 1
 ```
 
 Please note, when using `wibeth_output_all_zeros.bin` input file from the asset repository, the `-w` option is needed to overwrite the header information. The generated pattern file, `patt_golden_chan_0_tick_63_wibeth_output.bin`, is then used as input to the `tpg_workload_emulator` app.  
