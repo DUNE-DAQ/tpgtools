@@ -40,14 +40,40 @@ main(int argc, char** argv)
     int tpg_threshold = 500;
     app.add_option("-t,--tpg-threshold", tpg_threshold, "Value of the TPG threshold. Default value is 500.");
 
-    int collection_threshold = tpg_threshold;
-    app.add_option("-Z,--collection", collection_threshold, "Value of the TPG threshold. Default value is tpg_threshold.");
+    int tpg_threshold_plane2 = tpg_threshold;
+    app.add_option("-Z,--plane-two", tpg_threshold_plane2, "Value of the TPG threshold. Default value is tpg_threshold.");
 
-    int induction1_threshold = tpg_threshold;
-    app.add_option("-U,--induction-one", induction1_threshold, "Value of the TPG threshold. Default value is tpg_threshold.");
+    int tpg_threshold_plane1 = tpg_threshold;
+    app.add_option("-V,--plane-one", tpg_threshold_plane1, "Value of the TPG threshold. Default value is tpg_threshold.");
 
-    int induction2_threshold = tpg_threshold;
-    app.add_option("-V,--induction-two", induction2_threshold, "Value of the TPG threshold. Default value is tpg_threshold.");
+    int tpg_threshold_plane0 = tpg_threshold;
+    app.add_option("-U,--plane-zero", tpg_threshold_plane0, "Value of the TPG threshold. Default value is tpg_threshold.");
+
+    // tpg_rs_memory_factor_plane<n> gets updated to tpg_rs_memory_factor_default if still -1 after parsing.
+    float tpg_rs_memory_factor = 0.8;
+    app.add_option("--rs-memory", tpg_rs_memory_factor, "Value of the general tpg_rs_memory_factor.");
+
+    float tpg_rs_memory_factor_plane2 = tpg_rs_memory_factor;
+    app.add_option("--rs-memory-two", tpg_rs_memory_factor_plane2, "Value of the plane 2 TPG rs_memory_factor. Default value is tpg_rs_memory_factor.");
+
+    float tpg_rs_memory_factor_plane1 = tpg_rs_memory_factor;
+    app.add_option("--rs-memory-one", tpg_rs_memory_factor_plane1, "Value of the plane 1 TPG rs_memory_factor. Default value is tpg_rs_memory_factor.");
+
+    float tpg_rs_memory_factor_plane0 = tpg_rs_memory_factor;
+    app.add_option("--rs-memory-zero", tpg_rs_memory_factor_plane0, "Value of the plane 0 TPG rs_memory_factor. Default value is tpg_rs_memory_factor.");
+
+    // tpg_rs_scale_factor_plane<n> gets updated to tpg_rs_scale_factor_default if still -1 after parsing.
+    int tpg_rs_scale_factor = 2;
+    app.add_option("--rs-scale", tpg_rs_scale_factor, "Value of the general tpg_rs_scale_factor.");
+
+    int tpg_rs_scale_factor_plane2 = tpg_rs_scale_factor;
+    app.add_option("--rs-scale-two", tpg_rs_scale_factor_plane2, "Value of the plane 2 TPG rs_scale_factor. Default value is tpg_rs_scale_factor.");
+
+    int tpg_rs_scale_factor_plane1 = tpg_rs_scale_factor;
+    app.add_option("--rs-scale-one", tpg_rs_scale_factor_plane1, "Value of the plane 1 TPG rs_scale_factor. Default value is tpg_rs_scale_factor.");
+
+    int tpg_rs_scale_factor_plane0 = tpg_rs_scale_factor;
+    app.add_option("--rs-scale-zero", tpg_rs_scale_factor_plane0, "Value of the plane 0 TPG rs_scale_factor. Default value is tpg_rs_scale_factor.");
 
     int core_number = 0;
     app.add_option("-c,--core", core_number, "Set core number of the executing TPG thread. Default value is 0.");
@@ -94,7 +120,9 @@ main(int argc, char** argv)
       throw tpgtools::InvalidImplementation(ERS_HERE, select_implementation);  
     }
     
-    emulator->set_tpg_thresholds(collection_threshold, induction1_threshold, induction2_threshold);
+    emulator->set_tpg_thresholds(tpg_threshold_plane2, tpg_threshold_plane1, tpg_threshold_plane0);
+    emulator->set_rs_factors(tpg_rs_memory_factor_plane2, tpg_rs_memory_factor_plane1, tpg_rs_memory_factor_plane0,
+                             tpg_rs_scale_factor_plane2, tpg_rs_scale_factor_plane1, tpg_rs_scale_factor_plane0);
     emulator->set_CPU_affinity(core_number);
     emulator->initialize();
 
