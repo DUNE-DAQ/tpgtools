@@ -125,6 +125,20 @@ You can see full usage with `--help`, here an example:
 python create_images.py -i INPUT_TPSTREAM.hdf5 -n 1000 -o my/output/folder/ --ticks-limit 5 --channel-limit 2 --min-tps 3 
 ```
 
+#### `tpg_find_overactive_channels.py`
+This script generates a histogram for the number of TPs that occur on a given channel. Overly active channels have a TP count that can be considered as an outlier.
+This script also prints the channels that have a TP count above a user given limit and by the outlier definition with [Tukey's upper fence](https://en.wikipedia.org/wiki/Outlier#Tukey's_fences).
+The plot that is saved is unique for a given HDF5 file; however, running over the same HDF5 file with different arguments will overwrite previous plots, so be careful.
+There can also be more than one plot produced if there is more than one detector element (CRP/APA) for the requested detector (HD, VD, VDCB). If no TPs are found for a detector element, plotting is skipped and a print informs you that the detector element was empty.
+
+Here are a few example usages:
+```sh
+tpg_find_overactive_channels.py <HDF5_File> -d VDCB -n 2 -i 10 -v  # Use VD cold box channel limits, start on the 10th fragment, read 2 fragments, and be verbose.
+tpg_find_overactive_channels.py <HDF5_File> -d HD -l 1000	   # Use HD channel limits with a user limit of 1000 TPs per channel.
+tpg_find_overactive_channels.py <HDF5_File> -d VD -k 1.8	   # Use VD channel limits with Tukey's k = 1.8.
+```
+Details on these flags and the long forms can be seen with `-h` or `--help`.
+
 
 #### Setup DAQ environment on lxplus or NP04 machines (e.g. `np04-srv-019`)
 To use the tools and scripts in this repository, the DUNE-DAQ software environment must be setup. The following commands are valid for lxplus machines and NP04 machines (e.g. `np04-srv-019`). 
