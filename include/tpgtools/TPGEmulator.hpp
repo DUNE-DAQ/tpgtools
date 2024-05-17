@@ -58,7 +58,23 @@ public:
     if (!m_select_channel_map.empty()) {
       m_register_channel_map = swtpg_wibeth::get_register_to_offline_channel_map_wibeth(frame, m_channel_map);             
       for (size_t i = 0; i < swtpg_wibeth::NUM_REGISTERS_PER_FRAME * swtpg_wibeth::SAMPLES_PER_REGISTER; ++i) {
-        m_register_channels[i] = m_register_channel_map.channel[i];                
+        auto chan_value = m_register_channel_map.channel[i];
+
+        m_register_channels[i] = chan_value;
+        m_planes[i] = m_channel_map->get_plane_from_offline_channel(chan_value);
+        if (m_channel_map->get_plane_from_offline_channel(chan_value) == 2) {
+          m_tpg_threshold[i] = m_tpg_threshold_plane2;
+          m_register_memory_factor[i] = m_tpg_rs_memory_factor_plane2;
+          m_register_scale_factor[i] = m_tpg_rs_scale_factor_plane2;
+        } else if (m_channel_map->get_plane_from_offline_channel(chan_value) == 1) {
+          m_tpg_threshold[i] = m_tpg_threshold_plane1;
+          m_register_memory_factor[i] = m_tpg_rs_memory_factor_plane1;
+          m_register_scale_factor[i] = m_tpg_rs_scale_factor_plane1;
+        } else {
+          m_tpg_threshold[i] = m_tpg_threshold_plane0;
+          m_register_memory_factor[i] = m_tpg_rs_memory_factor_plane0;
+          m_register_scale_factor[i] = m_tpg_rs_scale_factor_plane0;
+        }
       }
     } else {
       // If no channel map is not selected use the values from 0 to 63
@@ -69,8 +85,22 @@ public:
   void save_raw_data(swtpg_wibeth::MessageRegisters register_array,
                      uint64_t t0, int channel_number, std::string algo);
 
-  void set_tpg_threshold(int tpg_threshold){
-    m_tpg_threshold = tpg_threshold;
+  void set_tpg_thresholds(int tpg_threshold_plane2, int tpg_threshold_plane1, int tpg_threshold_plane0){
+    m_tpg_threshold_plane2 = tpg_threshold_plane2;
+    m_tpg_threshold_plane1 = tpg_threshold_plane1;
+    m_tpg_threshold_plane0 = tpg_threshold_plane0;
+  }
+
+  void set_rs_factors(float tpg_rs_memory_factor_plane2, float tpg_rs_memory_factor_plane1, float tpg_rs_memory_factor_plane0,
+                      float tpg_rs_scale_factor_plane2, float tpg_rs_scale_factor_plane1, float tpg_rs_scale_factor_plane0)
+  {
+    m_tpg_rs_memory_factor_plane2 = (int)(10*tpg_rs_memory_factor_plane2);
+    m_tpg_rs_memory_factor_plane1 = (int)(10*tpg_rs_memory_factor_plane1);
+    m_tpg_rs_memory_factor_plane0 = (int)(10*tpg_rs_memory_factor_plane0);
+
+    m_tpg_rs_scale_factor_plane2 = 10/tpg_rs_scale_factor_plane2;
+    m_tpg_rs_scale_factor_plane1 = 10/tpg_rs_scale_factor_plane1;
+    m_tpg_rs_scale_factor_plane0 = 10/tpg_rs_scale_factor_plane0;
   }
 
   void set_CPU_affinity(int core_number) {
@@ -111,12 +141,24 @@ public:
   dunedaq::trgdataformats::TriggerPrimitive::Algorithm m_tp_algo = dunedaq::trgdataformats::TriggerPrimitive::Algorithm::kUnknown; 
 
 
-  int m_tpg_threshold = 500; //default value 
+  std::array<uint16_t, swtpg_wibeth::NUM_REGISTERS_PER_FRAME * swtpg_wibeth::SAMPLES_PER_REGISTER>
+    m_tpg_threshold = {10000}; // Default value.
+  std::array<uint16_t, swtpg_wibeth::NUM_REGISTERS_PER_FRAME * swtpg_wibeth::SAMPLES_PER_REGISTER>
+    m_planes; // Default value.
+  int m_tpg_threshold_plane2 = 150;
+  int m_tpg_threshold_plane1 = 150;
+  int m_tpg_threshold_plane0 = 150;
   int m_CPU_core = 0;
   int m_num_frames_to_save = 1;
 
   uint16_t m_tpg_rs_memory_factor = 8;
+  uint16_t m_tpg_rs_memory_factor_plane2 = 8;
+  uint16_t m_tpg_rs_memory_factor_plane1 = 8;
+  uint16_t m_tpg_rs_memory_factor_plane0 = 8;
   uint16_t m_tpg_rs_scale_factor = 5;
+  uint16_t m_tpg_rs_scale_factor_plane2 = 5;
+  uint16_t m_tpg_rs_scale_factor_plane1 = 5;
+  uint16_t m_tpg_rs_scale_factor_plane0 = 5;
   int16_t m_tpg_frugal_streaming_accumulator_limit = 10;  
 
   // Frame Handler 
@@ -136,6 +178,7 @@ public:
   // AAA: silver bullet to be able to use SimpleThreshold on collection and RS on induction planes
   // By default set all the values to the selected memory factor 
   std::array<uint16_t, swtpg_wibeth::NUM_REGISTERS_PER_FRAME * swtpg_wibeth::SAMPLES_PER_REGISTER> m_register_memory_factor = {0};
+  std::array<uint16_t, swtpg_wibeth::NUM_REGISTERS_PER_FRAME * swtpg_wibeth::SAMPLES_PER_REGISTER> m_register_scale_factor = {0};
 
   // TR info for validation purposes
   int m_register_TR_record_idx = -1;

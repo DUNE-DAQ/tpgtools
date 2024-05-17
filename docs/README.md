@@ -1,13 +1,13 @@
 # tpgtools 
-Here is a short summary of the applications and scripts available in `tpgtools` 
+Here is a short summary of the applications and scripts available in `tpgtools`
 
 ## Emulator
 
-`wibeth_tpg_algorithms_emulator` is an emulator application for TPG algorithms. It takes as input a Trigger Record file (`*.hdf5` file) and it will execute the selected TPG algorithm on the Trigger Record data. The application is single threaded, pinned to core 0. The core number is configurable.   
+`wibeth_tpg_algorithms_emulator` is an emulator application for TPG algorithms. It takes as input a Trigger Record file (`*.hdf5` file) and it will execute the selected TPG algorithm on the Trigger Record data. The application is single threaded, pinned to core 0. The core number is configurable.
 
 To use the tool use the following:
 ```sh
-$ wibeth_tpg_algorithms_emulator --help 
+$ wibeth_tpg_algorithms_emulator --help
 TPG algorithms emulator using input from Trigger Record files
 Usage: wibeth_tpg_algorithms_emulator [OPTIONS]
 
@@ -19,6 +19,17 @@ Options:
   -m,--channel-map TEXT       Select a valid channel map: None, VDColdboxChannelMap, ProtoDUNESP1ChannelMap, PD2HDChannelMap, HDColdboxChannelMap, FiftyLChannelMap
   -n,--num-TR-to-read INT     Number of Trigger Records to read. Default: select all TRs.
   -t,--tpg-threshold INT      Value of the TPG threshold. Default value is 500.
+  -Z,--plane-two INT          Value of the plane 2 TPG threshold. Default value is tpg_threshold.
+  -V,--plane-one INT          Value of the plane 1 TPG threshold. Default value is tpg_threshold.
+  -U,--plane-zero INT         Value of the plane 0 TPG threshold. Default value is tpg_threshold.
+  --rs-memory FLOAT           Value of the general tpg_rs_memory_factor.
+  --rs-memory-two FLOAT       Value of the plane 2 TPG rs_memory_factor. Default value is tpg_rs_memory_factor.
+  --rs-memory-one FLOAT       Value of the plane 1 TPG rs_memory_factor. Default value is tpg_rs_memory_factor.
+  --rs-memory-zero FLOAT      Value of the plane 0 TPG rs_memory_factor. Default value is tpg_rs_memory_factor.
+  --rs-scale INT              Value of the general tpg_rs_scale_factor.
+  --rs-scale-two INT          Value of the plane 2 TPG rs_scale_factor. Default value is tpg_rs_scale_factor.
+  --rs-scale-one INT          Value of the plane 1 TPG rs_scale_factor. Default value is tpg_rs_scale_factor.
+  --rs-scale-zero INT         Value of the plane 0 TPG rs_scale_factor. Default value is tpg_rs_scale_factor.
   -c,--core INT               Set core number of the executing TPG thread. Default value is 0.
   --save-adc-data             Save ADC data (first frame only)
   --save-trigprim             Save trigger primitive data
@@ -26,12 +37,14 @@ Options:
   -s,--num-frames-to-save INT Set the number of frames of ADC data from a TR to save: -1 (all) or 1. Default: 1 (first frame only).
 ```
 
-The command line option `save_adc_data` allows to save the raw ADC values in a txt file after the 14-bit to 16-bit expansion. The command line option `save_trigprim`  allows to save the in a file the Trigger Primitive object information in a txt file. 
+The command line option `save_adc_data` allows to save the raw ADC values in a txt file after the 14-bit to 16-bit expansion. The command line option `save_trigprim`  allows to save the in a file the Trigger Primitive object information in a txt file.
 
-Example of usage: 
+Example of usage:
 ```sh
 $ wibeth_tpg_algorithms_emulator -f swtest_run000035_0000_dataflow0_datawriter_0_20231102T083908.hdf5  -a SimpleThreshold -m PD2HDChannelMap -t 500 --save-trigprim --parse_trigger_primitive
 $ wibeth_tpg_algorithms_emulator -f swtest_run000035_0000_dataflow0_datawriter_0_20231102T083908.hdf5  -a AbsRS -m PD2HDChannelMap -t 500 --save-adc-data  -n 5 
+$ wibeth_tpg_algorithms_emulator -f swtest_run000035_0000_dataflow0_datawriter_0_20231102T083908.hdf5  -a AbsRS -m PD2HDChannelMap -t 500 --save-adc-data  -n 5 -Z 200
+$ wibeth_tpg_algorithms_emulator -f swtest_run000035_0000_dataflow0_datawriter_0_20231102T083908.hdf5  -a AbsRS -m PD2HDChannelMap -t 500 --save-adc-data  -n 5 -Z 200 --rs-memory 0.9 --rs-memory-two 0 --rs-scale-two 1
 ```
 
 
@@ -112,6 +125,20 @@ You can see full usage with `--help`, here an example:
 python create_images.py -i INPUT_TPSTREAM.hdf5 -n 1000 -o my/output/folder/ --ticks-limit 5 --channel-limit 2 --min-tps 3 
 ```
 
+#### `tpg_find_overactive_channels.py`
+This script generates a histogram for the number of TPs that occur on a given channel. Overly active channels have a TP count that can be considered as an outlier.
+This script also prints the channels that have a TP count above a user given limit and by the outlier definition with [Tukey's upper fence](https://en.wikipedia.org/wiki/Outlier#Tukey's_fences).
+The plot that is saved is unique for a given HDF5 file; however, running over the same HDF5 file with different arguments will overwrite previous plots, so be careful.
+There can also be more than one plot produced if there is more than one detector element (CRP/APA) for the requested detector (HD, VD, VDCB). If no TPs are found for a detector element, plotting is skipped and a print informs you that the detector element was empty.
+
+Here are a few example usages:
+```sh
+tpg_find_overactive_channels.py <HDF5_File> -d VDCB -n 2 -i 10 -v  # Use VD cold box channel limits, start on the 10th fragment, read 2 fragments, and be verbose.
+tpg_find_overactive_channels.py <HDF5_File> -d HD -l 1000	   # Use HD channel limits with a user limit of 1000 TPs per channel.
+tpg_find_overactive_channels.py <HDF5_File> -d VD -k 1.8	   # Use VD channel limits with Tukey's k = 1.8.
+```
+Details on these flags and the long forms can be seen with `-h` or `--help`.
+
 
 #### Setup DAQ environment on lxplus or NP04 machines (e.g. `np04-srv-019`)
 To use the tools and scripts in this repository, the DUNE-DAQ software environment must be setup. The following commands are valid for lxplus machines and NP04 machines (e.g. `np04-srv-019`). 
@@ -185,6 +212,17 @@ Options:
   -m,--channel-map TEXT       Select a valid channel map: None, VDColdboxChannelMap, ProtoDUNESP1ChannelMap, PD2HDChannelMap, HDColdboxChannelMap, FiftyLChannelMap
   -d,--duration-test INT      Duration (in seconds) to run the test. Default value is 120.
   -t,--tpg-threshold INT      Value of the TPG threshold. Default value is 500.
+  -Z,--plane-two INT          Value of the TPG threshold. Default value is tpg_threshold.
+  -V,--plane-one INT          Value of the TPG threshold. Default value is tpg_threshold.
+  -U,--plane-zero INT         Value of the TPG threshold. Default value is tpg_threshold.
+  --rs-memory FLOAT           Value of the general tpg_rs_memory_factor.
+  --rs-memory-two FLOAT       Value of the plane 2 TPG rs_memory_factor. Default value is tpg_rs_memory_factor.
+  --rs-memory-one FLOAT       Value of the plane 1 TPG rs_memory_factor. Default value is tpg_rs_memory_factor.
+  --rs-memory-zero FLOAT      Value of the plane 0 TPG rs_memory_factor. Default value is tpg_rs_memory_factor.
+  --rs-scale INT              Value of the general tpg_rs_scale_factor.
+  --rs-scale-two INT          Value of the plane 2 TPG rs_scale_factor. Default value is tpg_rs_scale_factor.
+  --rs-scale-one INT          Value of the plane 1 TPG rs_scale_factor. Default value is tpg_rs_scale_factor.
+  --rs-scale-zero INT         Value of the plane 0 TPG rs_scale_factor. Default value is tpg_rs_scale_factor.
   -c,--core INT               Set core number of the executing TPG thread. Default value is 0.
   --save-adc-data             Save ADC data (first frame only)
   --save-trigprim             Save trigger primitive data
@@ -196,7 +234,8 @@ Options:
 Example of usage: 
 ```sh
 $ wibeth_tpg_pattern_generator -f /cvmfs/dunedaq.opensciencegrid.org/assets/files/d/d/1/wibeth_output_all_zeros.bin -o . --save-trigprim -w -n 2 -t 64 -i 0 -c 63 -p patt_golden -s __63
-$ tpg_workload_emulator -f patt_golden_chan_0_tick_63_wibeth_output.bin -r false -a SimpleThreshold -i NAIVE  -n 2 -t 499 -m ProtoDUNESP1ChannelMap
+$ wibeth_tpg_workload_emulator -f patt_golden_chan_0_tick_63_wibeth_output.bin -r false -a SimpleThreshold -i NAIVE  -n 2 -t 499 -m ProtoDUNESP1ChannelMap -Z 200
+$ wibeth_tpg_workload_emulator -f patt_golden_chan_0_tick_63_wibeth_output.bin -r false -a AbsRS -i NAIVE  -n 2 -t 499 -m ProtoDUNESP1ChannelMap -Z 200 -U 100 --rs-memory-two 0 --rs-scale-two 1
 ```
 
 Please note, when using `wibeth_output_all_zeros.bin` input file from the asset repository, the `-w` option is needed to overwrite the header information. The generated pattern file, `patt_golden_chan_0_tick_63_wibeth_output.bin`, is then used as input to the `tpg_workload_emulator` app.  
@@ -205,7 +244,7 @@ More examples of usage:
 ```sh
 $ wibeth_tpg_workload_emulator -f patt_golden_chan_0_tick_1_wibeth_output.bin -r false -a SimpleThreshold -i NAIVE -n 2 -t 64  --save-trigprim -s __1
 $ wibeth_tpg_workload_emulator -f patt_golden_chan_0_tick_1_wibeth_output.bin -r false -a SimpleThreshold -i AVX -n 2 -t 64  --save-trigprim -s __1
-wibeth_tpg_workload_emulator -f patt_golden_chan_0_tick_63_wibeth_output.bin -r false -m VDColdboxChannelMap --save-trigprim -n 2 -t 64 -c 63 -a AbsRS -i AVX
+$ wibeth_tpg_workload_emulator -f patt_golden_chan_0_tick_63_wibeth_output.bin -r false -m VDColdboxChannelMap --save-trigprim -n 2 -t 64 -c 63 -a AbsRS -i AVX
 ```
 
 ### Running `pytest`
