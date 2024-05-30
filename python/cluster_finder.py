@@ -5,6 +5,7 @@ from sklearn.cluster import dbscan
 import pandas as pd
 from scipy.spatial import ConvexHull
 
+# UTILS, the following 4 functions ought to be moved to their own module...
 
 def make_ak_slicer(array):
     """
@@ -76,6 +77,58 @@ def slice_to_ak(np_array, ak_indicies):
     n_points = ak.num(ak_slices, axis=1)
     flat_inds = ak.flatten(ak_slices)
     return ak.unflatten(np_array[flat_inds], n_points)
+
+def add_ak_event_offset(vals, return_n_bits=False):
+    """
+    Generates event uniqueness by bitshifting integer values to leave
+    room for, and set the first n bits to reference the event number.
+
+    If insufficient bits are present in the data type, the code will
+    attempt to increase the size of the integer to hold the new bits.
+
+    WARNING: does not necessaryily preserve datatype
+
+    Parameters
+    ----------
+    vals : ak.Array
+        Awkward array of some integer values.
+    
+    Returns
+    -------
+    ak.Array
+        Awkward array of same shape of vals, where the index of the
+        outer layer is refernce as the lowest n bits of the new values.
+    """
+    n_events = ak.num(vals, axis=0)
+    n_extra_bits = len(bin(n_events)) - 2
+    n_mother_bits = len(bin(ak.max(vals))) - 2
+    offset_vals = vals
+    if (n_extra_bits + n_mother_bits) > 31:
+        offset_vals = ak.values_astype(offset_vals, np.int64)
+    if (n_extra_bits + n_mother_bits) > 63:
+        offset_vals = ak.values_astype(offset_vals, np.int128)
+    if (n_extra_bits + n_mother_bits) > 127:
+        raise ValueError("Overflow - numbers too large")
+    new_array = (offset_vals << n_extra_bits) + np.arange(n_events)
+    if return_n_bits:
+        return new_array, n_extra_bits
+    return new_array
+
+def ak_unique_along_final_axis(array):
+    """Returns unique values along final axis of awkward array."""
+    offset_arr, n_bits = add_ak_event_offset(array, return_n_bits=True)
+    unique_vals = np.unique(ak.ravel(offset_arr))
+    cluster_nums = unique_vals % (2**n_bits)
+    sorting = np.argsort(cluster_nums)
+    # timeit implies this is ~3x faster than using
+    #   np.unique(cluster_nums, return_counts=True)
+    run_lengths = ak.run_lengths(cluster_nums[sorting])
+    # Recover the initial values, sorted by event they appear in
+    values = unique_vals[sorting] >> n_bits
+    return ak.unflatten(values, run_lengths)
+
+
+# Actual functions
 
 def get_positions_array(
         tp_data,
@@ -154,6 +207,11 @@ def create_basic_dataframe(tp_data, cluster_labels, extra_columns=[]):
     shold be a dictionary containing functions which act upon an array
     which is the TP data of all points in the cluster.
 
+    NOTE on channels - currently this isn't smart. If a cluster manages
+    to go over multiple APAs, potentially there will be a load of extra
+    channels inbetween. Would need a smarter way of referncing the
+    channels.
+
     Parameters
     ----------
     tp_data : np.ndarray or pd.Dataframe
@@ -202,7 +260,9 @@ def create_basic_dataframe(tp_data, cluster_labels, extra_columns=[]):
         "time_max": ak.max(tp_end_times, axis=1)}
 
     try:
-        record_ids = tp_data["record_id"][data_indicies]
+        record_ids = ak.unflatten(tp_data["record_id"][data_indicies], n_hits)
+        unique_records = ak_unique_along_final_axis(record_ids)
+        cols_dict.update({"record_ids": unique_records.to_list()})
     except (KeyError, ValueError) as e:
         pass
 
