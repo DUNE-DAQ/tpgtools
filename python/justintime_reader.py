@@ -417,3 +417,12 @@ def read_roi_from_raw_manual(
     if verbosity >= 4:
         print(f"Time taken to load ADCs: {time.time() - t_start:.2f}s")
     return df_tpcs
+
+def get_frag_types_in_file(file_path):
+    """Returns the set of types contained within the passed hdf5 file"""
+    rdf = hdf5libs.HDF5RawDataFile(file_path)
+    results = []
+    for id in rdf.get_all_record_ids():
+        for path in rdf.get_fragment_dataset_paths(id):
+            results += [rdf.get_frag(path).get_fragment_type()]
+    return set(results)
