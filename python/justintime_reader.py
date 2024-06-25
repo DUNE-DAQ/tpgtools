@@ -122,6 +122,7 @@ def _make_bounds_func(bounds):
     def func(data):
         return np.logical_and(
             data >= bounds[0], data <= bounds[1])
+    return func
 
 def _tps_unpacker(file, unpacker, frags_list, type_str, verbosity=2):
     """Core unpacker for TP type data"""
