@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import hdf5libs
+import detchannelmaps
 import justintime.utils.rawdataunpacker as rdu
 import tpgsandbox.emulation.algos as tpalgos
 from scipy.spatial import ConvexHull
@@ -113,7 +114,7 @@ def _unpacking_core(
     else:
         raise ValueError(
             "Cannot find either tp or wib_eth data in the unpacker.")
-   
+
 def _make_bounds_func(bounds):
     """Create a function which selects data within the bounds."""
     if bounds is None:
@@ -527,8 +528,8 @@ def emulate_tps_from_raw(
     if return_stage not in return_stages:
         raise ValueError(
             f"return_stage: {return_stage}, must be one of {return_stages}")
-    input_stages = [None] + input_stages[:-1]
-    if input_stage not in return_stages:
+    input_stages = [None] + return_stages[:-1]
+    if input_stage not in input_stages:
         raise ValueError(
             f"input_stage: {input_stage}, must be one of {input_stages}")
     init_ped_algos = ["mode", "mean"]
@@ -547,21 +548,21 @@ def emulate_tps_from_raw(
         raise ValueError(f"input_stage {input_stage} must be earlier "
                          + f"than the return_stage {return_stage}")
 
-    if input_stage <= 0:
+    if input_ind <= 0:
         formatted_raw = raw_df.astype('int16')
         t0 = formatted_raw.index.min() if offset_times else 0
         formatted_raw.index = formatted_raw.index.astype('int64') - t0
         if return_stage == "format":
             return formatted_raw
 
-    if input_stage <=1: 
+    if input_ind <=1: 
         df_ped, df_ped_var = tpalgos.emulate_ped(
             formatted_raw, limit=ped_acc_limit, init_ped_range=init_ped_range)
         df_adc = formatted_raw-df_ped
         if return_stage == "ped":
             return df_adc
 
-    if input_stage <= 2:
+    if input_ind <= 2:
         match running_sum_algo:
             case "standard":
                 df_rs_adc = tpalgos.emulate_running_sum(df_adc, running_sum_ratio)
