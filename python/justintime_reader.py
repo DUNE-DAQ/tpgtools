@@ -6,7 +6,44 @@ import tpgsandbox.emulation.algos as tpalgos
 from scipy.spatial import ConvexHull
 import time
 import warnings
+# import logging
 
+# class UnpackerServiceFilter(rdu.UnpackerService):
+#     """
+#     Extends the standard justintime unpacker service to allow a filter
+#     on time channel before storing a file
+    
+#     New method:
+#     unpack_filtered(raw_data_file, tr_id, time_min, time_max, seq_id=0)
+#     """
+#     def unpack_filtered(
+#             self,
+#             raw_data_file, tr_id: int,
+#             time_min: int, time_max: int,
+#             seq_id: int=0) -> dict:
+#         res = {}
+
+#         trh = raw_data_file.get_trh((tr_id, seq_id))
+#         tr_source_ids = raw_data_file.get_source_ids((tr_id, seq_id))
+
+#         for sid in tr_source_ids:
+#             frag = raw_data_file.get_frag((tr_id, seq_id),sid)
+            
+#             if not (frag.get_window_begin() <= time_max
+#                     and frag.get_window_end() >= time_min):
+#                 continue
+
+#             for n,up in self.fragment_unpackers.items():
+#                 if not up.match(frag.get_fragment_type(), sid.subsystem):
+#                     # logging.debug(f"fragment {sid} (type {frag.get_fragment_type()}) and unpacker {n} - no match")
+#                     continue
+                
+#                 logging.debug(f"[{n}] Unpacking Subsys={sid.subsystem}, id={sid.id}")                
+#                 r = up.unpack(frag)
+#                 logging.debug(f"[{n}] Unpacking Subsys={sid.subsystem}, id={sid.id} completed ({len(r) if r is not None else 0})")
+#                 res.setdefault(n,{})[sid.id] = r
+
+#         return res
 
 def _unpacking_core(
         file, unpacker,
@@ -253,6 +290,7 @@ def read_hdf5_raw_jit(
                            init_frag=init_record, n_frags=n_records,
                            verbosity=verbosity)
 
+
 def read_roi_from_raw(
         file_path,
         cluster_row,
@@ -342,15 +380,14 @@ def read_roi_from_raw_manual(
     ----------
     file_path : str
         Location of the file contain the raw records to be read.
+    channel_bounds : tuple[int, int] or None
+        (minimum, maximum) channels to be read out, inclusive of
+        minimum and maximum. If None, read all channels.
+    time_bounds : tuple[int, int] or None
+        (minimum, maximum) time ticks to be read out, inclusive of
+        minimum and maximum. If None, read all ticks.
     records_list : list[int], optional
         List of record IDs to be read out. Default is None.
-    channel_bounds : tuple[int, int], optional
-        (minimum, maximum) channels to be read out, inclusive of
-        minimum and maximum. If None, read all channels. Default is
-        None.
-    time_bounds : tuple[int, int], optional
-        (minimum, maximum) time ticks to be read out, inclusive of
-        minimum and maximum. If None, read all ticks. Default is None.
     buffer_channel : int, optional
         Number of extra channels to add either side of the region
         containing the cluster.
@@ -370,12 +407,14 @@ def read_roi_from_raw_manual(
         indicating the recorded ADC of the channel at that time.
     """
     # <0 alright since we simply use >= operator
-    channel_min = channel_bounds[0] - buffer_channel
-    channel_max = channel_bounds[1] + buffer_channel
-    time_min = time_bounds[0] - buffer_time
-    time_max = time_bounds[1] + buffer_time
-    channel_bounds = (channel_min, channel_max)
-    time_bounds = (time_min, time_max)
+    if channel_bounds is not None:
+        channel_min = channel_bounds[0] - buffer_channel
+        channel_max = channel_bounds[1] + buffer_channel
+        channel_bounds = (channel_min, channel_max)
+    if time_bounds is not None:
+        time_min = time_bounds[0] - buffer_time
+        time_max = time_bounds[1] + buffer_time
+        time_bounds = (time_min, time_max)
 
     wethf_up = rdu.WIBEthFragmentPandasUnpacker(detector)
     up = rdu.UnpackerService()
