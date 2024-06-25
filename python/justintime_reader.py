@@ -103,7 +103,7 @@ def _unpacking_core(
             file, unpacker,
             frags_list, type_str,
             verbosity=verbosity)
-    elif 'wib_eth' in unpacked_trig:
+    elif 'wib_eth' in unpacker.fragment_unpackers.keys():
         channel_fn = _make_bounds_func(channel_bounds)
         time_fn = _make_bounds_func(time_bounds)
         return _raw_unpacker(
@@ -113,7 +113,7 @@ def _unpacking_core(
     else:
         raise ValueError(
             "Cannot find either tp or wib_eth data in the unpacker.")
-
+   
 def _make_bounds_func(bounds):
     """Create a function which selects data within the bounds."""
     if bounds is None:
@@ -162,6 +162,10 @@ def _raw_unpacker(
     if verbosity >= 4:
         t_start = time.time()
     for trig in frags_list:
+        if verbosity >= 2:
+            print(f"--- Reading {type_str} {trig} ---")
+        
+        unpacked_trig = unpacker.unpack(file, trig)
         dfs_bde = {k:v for k,v in unpacked_trig['wib_eth'].items() if not v is None}
         if verbosity >= 3:
             print(f"Assembling WIBEth Frames {len(dfs_bde)}")
@@ -289,7 +293,6 @@ def read_hdf5_raw_jit(
                            frags_list=records_list,
                            init_frag=init_record, n_frags=n_records,
                            verbosity=verbosity)
-
 
 def read_roi_from_raw(
         file_path,
