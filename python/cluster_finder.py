@@ -74,8 +74,8 @@ def slice_to_ak(np_array, ak_indicies):
     ak.Array
         Sliced view of `np_array`.
     """
-    n_points = ak.num(ak_slices, axis=1)
-    flat_inds = ak.flatten(ak_slices)
+    n_points = ak.num(ak_indicies, axis=1)
+    flat_inds = ak.flatten(ak_indicies)
     return ak.unflatten(np_array[flat_inds], n_points)
 
 def add_ak_event_offset(vals, return_n_bits=False):
@@ -377,3 +377,177 @@ def calc_axes_accurate(points):
     covar = np.cov(hull, rowvar=False, bias=True)
     eigvals = np.linalg.eigvals(covar)
     return np.sort(np.sqrt(eigvals))
+
+def get_ind_matches(coll_ranges, starts, ends, ind_list, window):
+    """ N.B requires TPs entirely within window"""
+    match_ind_arr = np.arange(coll_ranges.shape[0])
+    curr_group = 0
+    groups = [np.array([])]*coll_ranges.shape[0]
+    unmatched = []
+    curr_inds = []
+    init_i = 0
+    for i, (start, end) in enumerate(zip(starts, ends)):
+        if end > (coll_ranges[curr_group, 1] + window):
+            # Useful printouts for debugging, uncomment if wanted.
+            #print(f"Next group: {end} > {(coll_ranges[curr_group, 1] + window)}")
+            #print(f"Added group: ind_list[{init_i}:{i}]")
+            #print(ind_list[init_i:i])
+            groups[curr_group] = ind_list[init_i:i]
+            # Could do something mildly fancy here to avoid checking groups < curr_group
+            curr_group = match_ind_arr[(coll_ranges[:, 1] + window) >= end][0]
+            init_i = i
+        if start >= (coll_ranges[curr_group, 0] - window):
+            #print(f"Added to current group: {end} > {(coll_ranges[curr_group, 1] + window)} and {start} >= {(coll_ranges[curr_group, 0] - window)}")
+            continue
+        # Probably could remove this too with appropriate ordering of if statements,
+        # or it may just require a "last tp not in range" flag, which I can't be bothered to add...
+        #print(f"Unmatched: {start} >= {(coll_ranges[curr_group, 0] - window)}")
+        unmatched += [ind_list[i]]
+        init_i = i+1
+    return ak.Array(groups), np.array(unmatched)
+
+def match_all_tps_in_windows(
+        coll_tps, u_tps, v_tps,
+        coll_gap, u_window, v_window,
+        u_offset=375, v_offset=188,
+        return_ranges=False):
+    """
+    Match together TPs on all planes based on closeness in time.
+    
+    A group of collection TPs is constructed if they are separated by
+    at most `coll_gap` ticks. Then, the same window is applied to the
+    TPs on the induction planes, offset by the expected number of ticks
+    for charge to drift to the collection plane. This window can be
+    slightly widened to account for uncertainty in drift time using the
+    `u_window` and `v_window` arguments. If an induction TP is
+    contained completely withing this window, it is added into the
+    group.
+
+    BEWARE: it does not consider any spatial coordinates. Matching is
+    done purely on time. This is appropriate for small clusters of TPs
+    when the supplied tps exist only on a few neighbouring channels. To
+    try to match a cluster, the `coll_tps` would need to contain only
+    the TPs contained in that cluster as determined by some other
+    algorithmn.
+
+    Parameters
+    ----------
+    coll_tps : pd.DataFrame
+        DataFrame containing TPs from the collection plane which should
+        be matched to induction planes. Collection TPs are grouped
+        together if the diffence between the last seen tps <=
+        `coll_gap`, regardless of wire. Ensure this does not contain
+        TPs appear at the same time, but with large channel
+        separations.
+    u_tps : pd.DataFrame
+        DataFrame of TPs generated from the U plane (plane 0).
+    v_tps : pd.DataFrame
+        DataFrame of TPs generated from the V plane (plane 1).
+    coll_gap : int
+        Number of ticks (16ns) that must have passed since the previous
+        collection TP to create a new group. For saftey, this should be
+        at least `2 * max(u_window, v_window)`
+    u_window : int
+        Number of extra ticks (16ns) leeway added to the U plane window
+        when deciding if a TP should belong to the group. 1 tick should
+        be sufficient in most cases. If there are signifcant difference
+        in grouping with different values, it may indicate the
+        `u_offset` is incorrect.
+    u_window : int
+        Number of extra ticks (16ns) leeway added to the V plane window
+        when deciding if a TP should belong to the group. 1 tick should
+        be sufficient in most cases. If there are signifcant difference
+        in grouping with different values, it may indicate the
+        `v_offset` is incorrect.
+    u_offset : int, optional
+        Number of ticks (16ns) expected for charge to drift from the
+        U-plane to the collection plane. PD-II horizontal drift, this
+        is expected to be 375 ticks. Default is 375.
+    u_offset : int, optional
+        Number of ticks (16ns) expected for charge to drift from the
+        V-plane to the collection plane. PD-II horizontal drift, this
+        is expected to be 188 ticks. Default is 188.
+    return_ranges : bool, optional
+        If true, return the time ranges of the collection planes TPs
+        used in the groupings as an `(n, 2)`-shape array, for `n`
+        groups found. This could be manually calculated per group as
+        `[min(tps.time_start),
+         max(tps.time_start + tps.time_over_threshold)]`. Dfeault is
+        False.
+    
+    Returns
+    -------
+    `(coll_groups, u_matched, v_matched, u_unmatched, v_unmatched)` or
+    `coll_groups, u_matched, v_matched, u_unmatched, v_unmatched,
+     matches)` if `return_ranges` is True.
+    
+    coll_groups : ak.Array
+        Awkward array of integers which pick out the TPs in `coll_tps`
+        that form each group. Each entry in the 0 axis corresponds to
+        one TP group.
+    u_matched : ak.Array
+        Awkward array of integers which pick out the TPs in `u_tps`
+        that form each group. Each entry in the 0 axis corresponds to
+        one TP group, matching with the same outer index of
+        `coll_groups`.
+    v_matched : ak.Array
+        Awkward array of integers which pick out the TPs in `v_tps`
+        that form each group. Each entry in the 0 axis corresponds to
+        one TP group, matching with the same outer index of
+        `coll_groups`.
+    u_unmatched : np.ndarray
+        Numnpy array of integers which pick out the TPs in `u_tps`
+        which are not matched to any group.
+    v_unmatched : np.ndarray
+        Numnpy array of integers which pick out the TPs in `v_tps`
+        which are not matched to any group.
+    matches : np.ndarray, optional
+        Only returned if `return_ranges` is True. Shape is `(n, 2)`,
+        for `n` groups found. The first column of axis 1 is the
+        minimum time start of the group, the second column of axis 1 is
+        the maximum time end of the group. Axis 0 matches to axis 0 of
+        the `coll_groups` array.
+    """
+    used_collections = np.full(len(coll_tps), False)
+    coll_starts = coll_tps["time_start"]
+    u_starts = u_tps["time_start"]
+    v_starts = v_tps["time_start"]
+    min_ts = min(np.min(coll_tps["time_start"]), np.min(u_tps["time_start"]), np.min(v_tps["time_start"]))
+    def ticks(times):
+        return (times.to_numpy() - min_ts)/16
+    coll_sort = np.argsort(coll_starts)
+    coll_starts = ticks(coll_starts)[coll_sort]
+    coll_ends = ticks(coll_tps["time_start"] + coll_tps["time_over_threshold"])
+    coll_list = np.arange(coll_starts.size)[coll_sort]
+    u_sort = np.argsort(u_starts)
+    u_starts = ticks(u_starts)[u_sort] - u_offset
+    u_ends = ticks(u_tps["time_start"] + u_tps["time_over_threshold"])[u_sort] - u_offset
+    u_list = np.arange(u_starts.size)[u_sort]
+    v_sort = np.argsort(v_starts)
+    v_starts = ticks(v_starts)[v_sort] - v_offset
+    v_ends = ticks(v_tps["time_start"] + v_tps["time_over_threshold"])[v_sort] - v_offset
+    v_list = np.arange(v_starts.size)[v_sort]
+
+    matches = []
+    coll_groups = []
+    init_i = 0
+    curr_start = coll_starts[0]
+    last_end = coll_starts[0]
+    for i, (start, end) in enumerate(zip(coll_starts, coll_ends)):
+        if start - last_end > coll_gap:
+            matches += [np.array([curr_start, end])]
+            coll_groups += [coll_list[init_i:i]]
+            curr_start = start
+            init_i = i
+        last_end = end
+    matches += [np.array([curr_start, coll_ends[-1]])]
+    matches = np.array(matches)
+    coll_groups += [coll_list[init_i:i]]
+    coll_groups = ak.Array(coll_groups)
+    
+    u_matched, u_unmatched = get_ind_matches(matches, u_starts, u_ends, u_list, u_window)
+    v_matched, v_unmatched = get_ind_matches(matches, v_starts, v_ends, v_list, v_window)
+
+    if return_ranges:
+        return coll_groups, u_matched, v_matched, u_unmatched, v_unmatched, matches
+    return coll_groups, u_matched, v_matched, u_unmatched, v_unmatched
