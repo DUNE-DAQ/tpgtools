@@ -141,7 +141,7 @@ void tpg_emulator_avx::extract_hits(uint16_t* output_location, uint64_t timestam
     // Initialize the channel map if a valid name has been selected
     if (!m_select_channel_map.empty()) {
       TLOG() << "Using channel map: " << m_select_channel_map;
-      m_channel_map = dunedaq::detchannelmaps::make_map(m_select_channel_map);
+      m_channel_map = dunedaq::detchannelmaps::make_tpc_map(m_select_channel_map);
     }
 
     // Initialize frame handler
